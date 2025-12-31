@@ -20,6 +20,7 @@ class AddItemScreen extends HookConsumerWidget {
     final nameController = useTextEditingController();
     final priceController = useTextEditingController();
     final amountController = useTextEditingController(text: '0');
+    final reasonController = useTextEditingController();
 
     // Save item callback
     Future<void> saveItem() async {
@@ -30,12 +31,14 @@ class AddItemScreen extends HookConsumerWidget {
       final name = nameController.text.trim();
       final price = double.parse(priceController.text.trim());
       final amount = int.tryParse(amountController.text.trim()) ?? 0;
+      final reason = reasonController.text.trim().isEmpty ? null : reasonController.text.trim();
 
       final success = await ref.read(itemProvider.notifier).createItem(
             name,
             price,
             amount: amount,
             date: date,
+            reason: reason,
           );
 
       if (success && context.mounted) {
@@ -243,6 +246,50 @@ class AddItemScreen extends HookConsumerWidget {
                 }
                 return null;
               },
+            ),
+            const SizedBox(height: 28),
+            
+            // Reason Field (Optional)
+            Text(
+              'หมายเหตุ (ไม่บังคับ)',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[800],
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: reasonController,
+              style: const TextStyle(fontSize: 20),
+              decoration: InputDecoration(
+                hintText: 'เช่น: เผ็ดมาก, ไม่ใส่ผัก...',
+                hintStyle: TextStyle(fontSize: 18, color: Colors.grey[400]),
+                prefixIcon: Icon(Icons.note_outlined, size: 28, color: Colors.orange[700]),
+                helperText: 'ระบุรายละเอียดเพิ่มเติม เช่น ความเผ็ด หรือข้อควรระวัง',
+                helperStyle: const TextStyle(fontSize: 16),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(color: Colors.grey[300]!, width: 2),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(color: Colors.grey[300]!, width: 2),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).colorScheme.primary,
+                    width: 3,
+                  ),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 20,
+                ),
+              ),
             ),
             const SizedBox(height: 40),
             

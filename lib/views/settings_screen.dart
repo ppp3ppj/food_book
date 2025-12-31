@@ -261,7 +261,7 @@ class SettingsScreen extends HookConsumerWidget {
                         ),
                         const SizedBox(height: 12),
                         const Text(
-                          '1. ข้าวผัดกุ้ง - ฿60.00',
+                          '1. ข้าวผัดกุ้ง - ฿60.00 (เผ็ดมาก)',
                           style: TextStyle(fontSize: 16),
                         ),
                         const SizedBox(height: 4),
@@ -271,7 +271,7 @@ class SettingsScreen extends HookConsumerWidget {
                         ),
                         const SizedBox(height: 4),
                         const Text(
-                          '3. ผัดไทย - ฿50.00',
+                          '3. ผัดไทย - ฿50.00 (ไม่ใส่ผัก)',
                           style: TextStyle(fontSize: 16),
                         ),
                         if (footerController.text.isNotEmpty) ...[

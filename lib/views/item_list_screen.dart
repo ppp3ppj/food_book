@@ -519,6 +519,31 @@ class ItemListScreen extends HookConsumerWidget {
                         ],
                       ),
                     ],
+                    if (item.reason != null && item.reason!.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.note_outlined,
+                            size: 18,
+                            color: Colors.orange[600],
+                          ),
+                          const SizedBox(width: 2),
+                          Expanded(
+                            child: Text(
+                              item.reason!,
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: Colors.orange[700],
+                                fontStyle: FontStyle.italic,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -640,9 +665,12 @@ class ItemListScreen extends HookConsumerWidget {
     // Items
     for (var i = 0; i < items.length; i++) {
       final item = items[i];
-      buffer.writeln(
-        '${i + 1}. ${item.name} - ฿${item.price.toStringAsFixed(2)}',
-      );
+      final itemText = '${i + 1}. ${item.name} - ฿${item.price.toStringAsFixed(2)}';
+      if (item.reason != null && item.reason!.isNotEmpty) {
+        buffer.writeln('$itemText (${item.reason})');
+      } else {
+        buffer.writeln(itemText);
+      }
     }
 
     // Footer

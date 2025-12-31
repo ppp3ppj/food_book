@@ -5,6 +5,7 @@ class ItemModel {
   final double price;
   final int amount;
   final String date; // Date in YYYY-MM-DD format
+  final String? reason; // Optional reason/note (e.g., เผ็ดมาก)
   final String? createdAt;
   final String? updatedAt;
 
@@ -14,6 +15,7 @@ class ItemModel {
     required this.price,
     this.amount = 0,
     required this.date,
+    this.reason,
     this.createdAt,
     this.updatedAt,
   });
@@ -26,6 +28,7 @@ class ItemModel {
       price: (map['price'] as num).toDouble(),
       amount: map['amount'] as int? ?? 0,
       date: map['date'] as String,
+      reason: map['reason'] as String?,
       createdAt: map['created_at'] as String?,
       updatedAt: map['updated_at'] as String?,
     );
@@ -39,6 +42,7 @@ class ItemModel {
       'price': price,
       'amount': amount,
       'date': date,
+      'reason': reason,
       'created_at': createdAt,
       'updated_at': updatedAt,
     };
@@ -51,6 +55,7 @@ class ItemModel {
     double? price,
     int? amount,
     String? date,
+    String? reason,
     String? createdAt,
     String? updatedAt,
   }) {
@@ -60,6 +65,7 @@ class ItemModel {
       price: price ?? this.price,
       amount: amount ?? this.amount,
       date: date ?? this.date,
+      reason: reason ?? this.reason,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

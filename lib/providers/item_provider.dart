@@ -77,14 +77,14 @@ class ItemNotifier extends Notifier<ItemState> {
   }
 
   /// Create new item with date
-  Future<bool> createItem(String name, double price, {int amount = 0, String? date}) async {
+  Future<bool> createItem(String name, double price, {int amount = 0, String? date, String? reason}) async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
       final itemDate = date ?? _formatDate(DateTime.now());
       _database.execute(
-        'INSERT INTO items (name, price, amount, date) VALUES (?, ?, ?, ?)',
-        [name, price, amount, itemDate],
+        'INSERT INTO items (name, price, amount, date, reason) VALUES (?, ?, ?, ?, ?)',
+        [name, price, amount, itemDate, reason],
       );
       
       debugPrint('✅ Item created: $name - ฿$price for date: $itemDate');
@@ -102,14 +102,14 @@ class ItemNotifier extends Notifier<ItemState> {
   }
 
   /// Update existing item
-  Future<bool> updateItem(int id, String name, double price, {int? amount, String? date}) async {
+  Future<bool> updateItem(int id, String name, double price, {int? amount, String? date, String? reason}) async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
       final itemDate = date ?? _formatDate(DateTime.now());
       _database.execute(
-        'UPDATE items SET name = ?, price = ?, amount = ?, date = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-        [name, price, amount ?? 0, itemDate, id],
+        'UPDATE items SET name = ?, price = ?, amount = ?, date = ?, reason = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+        [name, price, amount ?? 0, itemDate, reason, id],
       );
       
       debugPrint('✅ Item updated: ID $id');

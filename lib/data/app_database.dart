@@ -47,6 +47,7 @@ class AppDatabase {
         price REAL NOT NULL DEFAULT 0.0,
         amount INTEGER DEFAULT 0,
         date TEXT NOT NULL,
+        reason TEXT,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
         updated_at TEXT
       )
@@ -55,6 +56,13 @@ class AppDatabase {
     // Add date column if it doesn't exist (for existing databases)
     try {
       _database!.execute('ALTER TABLE items ADD COLUMN date TEXT NOT NULL DEFAULT "2025-01-01"');
+    } catch (e) {
+      // Column already exists, ignore error
+    }
+    
+    // Add reason column if it doesn't exist (for existing databases)
+    try {
+      _database!.execute('ALTER TABLE items ADD COLUMN reason TEXT');
     } catch (e) {
       // Column already exists, ignore error
     }
