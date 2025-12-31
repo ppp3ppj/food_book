@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../views/item_list_screen.dart';
 import '../views/add_item_screen.dart';
 import '../views/edit_item_screen.dart';
+import '../views/settings_screen.dart';
 import '../models/item_model.dart';
 
 /// Route paths as constants for type safety and easy refactoring
@@ -11,6 +12,7 @@ class AppRoutes {
   static const String home = '/';
   static const String addItem = '/add-item';
   static const String editItem = '/edit-item';
+  static const String settings = '/settings';
 }
 
 /// GoRouter configuration provider
@@ -25,23 +27,20 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.home,
         name: 'home',
-        pageBuilder: (context, state) => const MaterialPage(
-          child: ItemListScreen(),
-        ),
+        pageBuilder: (context, state) =>
+            const MaterialPage(child: ItemListScreen()),
       ),
-      
+
       // Add Item route
       GoRoute(
         path: AppRoutes.addItem,
         name: 'add-item',
         pageBuilder: (context, state) {
           final date = state.extra as String?;
-          return MaterialPage(
-            child: AddItemScreen(date: date),
-          );
+          return MaterialPage(child: AddItemScreen(date: date));
         },
       ),
-      
+
       // Edit Item route with item parameter
       GoRoute(
         path: AppRoutes.editItem,
@@ -55,8 +54,16 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           );
         },
       ),
+
+      // Settings route
+      GoRoute(
+        path: AppRoutes.settings,
+        name: 'settings',
+        pageBuilder: (context, state) =>
+            const MaterialPage(child: SettingsScreen()),
+      ),
     ],
-    
+
     // Error handling
     errorBuilder: (context, state) => Scaffold(
       appBar: AppBar(title: const Text('Error')),
@@ -66,10 +73,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           children: [
             const Icon(Icons.error_outline, size: 64, color: Colors.red),
             const SizedBox(height: 16),
-            Text(
-              'Page not found: ${state.uri}',
-              textAlign: TextAlign.center,
-            ),
+            Text('Page not found: ${state.uri}', textAlign: TextAlign.center),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () => context.go(AppRoutes.home),

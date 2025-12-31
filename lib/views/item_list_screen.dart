@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../models/item_model.dart';
 import '../providers/item_provider.dart';
+import '../providers/settings_provider.dart';
 import '../router/app_router.dart';
 
 /// Item List Screen - Senior-friendly design with Thai language
@@ -18,29 +20,29 @@ class ItemListScreen extends HookConsumerWidget {
     final searchFocusNode = useFocusNode();
     final searchQuery = useState('');
     final selectedDate = useState(DateTime.now());
-    
+
     // Watch item state from Riverpod provider
     final itemState = ref.watch(itemProvider);
-    
+
     // Reload items when date changes using Future.microtask to avoid lifecycle issues
     useEffect(() {
-      final dateStr = '${selectedDate.value.year}-${selectedDate.value.month.toString().padLeft(2, '0')}-${selectedDate.value.day.toString().padLeft(2, '0')}';
-      Future.microtask(() => ref.read(itemProvider.notifier).loadItems(date: dateStr));
+      final dateStr =
+          '${selectedDate.value.year}-${selectedDate.value.month.toString().padLeft(2, '0')}-${selectedDate.value.day.toString().padLeft(2, '0')}';
+      Future.microtask(
+        () => ref.read(itemProvider.notifier).loadItems(date: dateStr),
+      );
       return null;
     }, [selectedDate.value]);
-    
+
     // Computed filtered items
-    final filteredItems = useMemoized(
-      () {
-        if (searchQuery.value.isEmpty) return itemState.items;
-        
-        final lowerQuery = searchQuery.value.toLowerCase();
-        return itemState.items.where((item) {
-          return item.name.toLowerCase().contains(lowerQuery);
-        }).toList();
-      },
-      [itemState.items, searchQuery.value],
-    );
+    final filteredItems = useMemoized(() {
+      if (searchQuery.value.isEmpty) return itemState.items;
+
+      final lowerQuery = searchQuery.value.toLowerCase();
+      return itemState.items.where((item) {
+        return item.name.toLowerCase().contains(lowerQuery);
+      }).toList();
+    }, [itemState.items, searchQuery.value]);
 
     return Scaffold(
       appBar: AppBar(
@@ -54,6 +56,25 @@ class ItemListScreen extends HookConsumerWidget {
         elevation: 0,
         toolbarHeight: 56,
         actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 4.0),
+            child: IconButton(
+              icon: const Icon(Icons.share, size: 28),
+              tooltip: 'แชร์เมนู',
+              iconSize: 28,
+              onPressed: () =>
+                  _shareMenu(context, ref, selectedDate.value, filteredItems),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 4.0),
+            child: IconButton(
+              icon: const Icon(Icons.settings, size: 28),
+              tooltip: 'ตั้งค่า',
+              iconSize: 28,
+              onPressed: () => context.push(AppRoutes.settings),
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.only(right: 8.0),
             child: IconButton(
@@ -143,14 +164,18 @@ class ItemListScreen extends HookConsumerWidget {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: IconButton(
                       icon: const Icon(Icons.chevron_left_rounded, size: 32),
                       color: Theme.of(context).colorScheme.primary,
                       onPressed: () {
-                        selectedDate.value = selectedDate.value.subtract(const Duration(days: 1));
+                        selectedDate.value = selectedDate.value.subtract(
+                          const Duration(days: 1),
+                        );
                       },
                       tooltip: 'วันก่อนหน้า',
                     ),
@@ -184,12 +209,19 @@ class ItemListScreen extends HookConsumerWidget {
                       borderRadius: BorderRadius.circular(16),
                       child: Container(
                         margin: const EdgeInsets.symmetric(horizontal: 12),
-                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 16,
+                        ),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.primary.withOpacity(0.05),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primary.withOpacity(0.3),
                             width: 2,
                           ),
                         ),
@@ -224,14 +256,18 @@ class ItemListScreen extends HookConsumerWidget {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: IconButton(
                       icon: const Icon(Icons.chevron_right_rounded, size: 32),
                       color: Theme.of(context).colorScheme.primary,
                       onPressed: () {
-                        selectedDate.value = selectedDate.value.add(const Duration(days: 1));
+                        selectedDate.value = selectedDate.value.add(
+                          const Duration(days: 1),
+                        );
                       },
                       tooltip: 'วันถัดไป',
                     ),
@@ -254,7 +290,8 @@ class ItemListScreen extends HookConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          final dateStr = '${selectedDate.value.year}-${selectedDate.value.month.toString().padLeft(2, '0')}-${selectedDate.value.day.toString().padLeft(2, '0')}';
+          final dateStr =
+              '${selectedDate.value.year}-${selectedDate.value.month.toString().padLeft(2, '0')}-${selectedDate.value.day.toString().padLeft(2, '0')}';
           context.push(AppRoutes.addItem, extra: dateStr);
         },
         icon: const Icon(Icons.add, size: 24),
@@ -289,10 +326,7 @@ class ItemListScreen extends HookConsumerWidget {
               const SizedBox(height: 24),
               Text(
                 'กำลังโหลด...',
-                style: TextStyle(
-                  fontSize: 22,
-                  color: Colors.grey[700],
-                ),
+                style: TextStyle(fontSize: 22, color: Colors.grey[700]),
               ),
             ],
           ),
@@ -363,9 +397,7 @@ class ItemListScreen extends HookConsumerWidget {
               ),
               const SizedBox(height: 20),
               Text(
-                searchQuery.isEmpty 
-                    ? 'ยังไม่มีรายการ' 
-                    : 'ไม่พบรายการ',
+                searchQuery.isEmpty ? 'ยังไม่มีรายการ' : 'ไม่พบรายการ',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -374,8 +406,8 @@ class ItemListScreen extends HookConsumerWidget {
               ),
               const SizedBox(height: 10),
               Text(
-                searchQuery.isEmpty 
-                    ? 'เริ่มต้นโดยการเพิ่มรายการใหม่' 
+                searchQuery.isEmpty
+                    ? 'เริ่มต้นโดยการเพิ่มรายการใหม่'
                     : 'ลองค้นหาด้วยคำอื่น',
                 style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                 textAlign: TextAlign.center,
@@ -402,9 +434,7 @@ class ItemListScreen extends HookConsumerWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () => context.push(
@@ -518,11 +548,127 @@ class ItemListScreen extends HookConsumerWidget {
     );
   }
 
+  /// Share menu as formatted text
+  Future<void> _shareMenu(
+    BuildContext context,
+    WidgetRef ref,
+    DateTime selectedDate,
+    List<ItemModel> items,
+  ) async {
+    if (items.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'ไม่มีรายการอาหารให้แชร์',
+            style: TextStyle(fontSize: 16),
+          ),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    final settings = ref.read(settingsProvider);
+    final formattedText = _generateMenuText(
+      settings.menuHeaderText,
+      settings.menuFooterNote,
+      selectedDate,
+      items,
+    );
+
+    await Clipboard.setData(ClipboardData(text: formattedText));
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            'คัดลอกเมนูไปยังคลิปบอร์ดแล้ว',
+            style: TextStyle(fontSize: 16),
+          ),
+          backgroundColor: Colors.green[700],
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.all(16),
+          action: SnackBarAction(
+            label: 'ดู',
+            textColor: Colors.white,
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text(
+                    'ตัวอย่างข้อความ',
+                    style: TextStyle(fontSize: 20),
+                  ),
+                  content: SingleChildScrollView(
+                    child: SelectableText(
+                      formattedText,
+                      style: const TextStyle(fontSize: 16, height: 1.5),
+                    ),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('ปิด', style: TextStyle(fontSize: 16)),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      );
+    }
+  }
+
+  /// Generate formatted menu text
+  String _generateMenuText(
+    String headerText,
+    String footerNote,
+    DateTime date,
+    List<ItemModel> items,
+  ) {
+    final buffer = StringBuffer();
+
+    // Header
+    buffer.writeln(headerText);
+    buffer.writeln('📅 ${_formatDate(date)}');
+    buffer.writeln('${'─' * 30}');
+
+    // Items
+    for (var i = 0; i < items.length; i++) {
+      final item = items[i];
+      buffer.writeln(
+        '${i + 1}. ${item.name} - ฿${item.price.toStringAsFixed(2)}',
+      );
+    }
+
+    // Footer
+    if (footerNote.isNotEmpty) {
+      buffer.writeln('${'─' * 30}');
+      buffer.writeln(footerNote);
+    }
+
+    return buffer.toString();
+  }
+
   /// Format date in Thai Buddhist calendar format
   String _formatDate(DateTime date) {
     final thaiMonths = [
-      'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
-      'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
+      'ม.ค.',
+      'ก.พ.',
+      'มี.ค.',
+      'เม.ย.',
+      'พ.ค.',
+      'มิ.ย.',
+      'ก.ค.',
+      'ส.ค.',
+      'ก.ย.',
+      'ต.ค.',
+      'พ.ย.',
+      'ธ.ค.',
     ];
     final day = date.day;
     final month = thaiMonths[date.month - 1];
@@ -533,7 +679,13 @@ class ItemListScreen extends HookConsumerWidget {
   /// Format day name in Thai
   String _formatDayName(DateTime date) {
     final thaiDays = [
-      'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์', 'อาทิตย์'
+      'จันทร์',
+      'อังคาร',
+      'พุธ',
+      'พฤหัสบดี',
+      'ศุกร์',
+      'เสาร์',
+      'อาทิตย์',
     ];
     return thaiDays[date.weekday - 1];
   }
