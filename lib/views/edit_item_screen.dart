@@ -9,8 +9,9 @@ import '../providers/item_provider.dart';
 /// Performance optimized with hooks for form management
 class EditItemScreen extends HookConsumerWidget {
   final ItemModel item;
+  final String? date;
 
-  const EditItemScreen({super.key, required this.item});
+  const EditItemScreen({super.key, required this.item, this.date});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -37,6 +38,7 @@ class EditItemScreen extends HookConsumerWidget {
             name,
             price,
             amount: amount,
+            date: date ?? item.date,
           );
 
       if (success && context.mounted) {

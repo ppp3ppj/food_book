@@ -17,9 +17,17 @@ class ItemListScreen extends HookConsumerWidget {
     final searchController = useTextEditingController();
     final searchFocusNode = useFocusNode();
     final searchQuery = useState('');
+    final selectedDate = useState(DateTime.now());
     
     // Watch item state from Riverpod provider
     final itemState = ref.watch(itemProvider);
+    
+    // Reload items when date changes using Future.microtask to avoid lifecycle issues
+    useEffect(() {
+      final dateStr = '${selectedDate.value.year}-${selectedDate.value.month.toString().padLeft(2, '0')}-${selectedDate.value.day.toString().padLeft(2, '0')}';
+      Future.microtask(() => ref.read(itemProvider.notifier).loadItems(date: dateStr));
+      return null;
+    }, [selectedDate.value]);
     
     // Computed filtered items
     final filteredItems = useMemoized(
@@ -114,6 +122,123 @@ class ItemListScreen extends HookConsumerWidget {
                 },
               ),
             ),
+            // Date Navigation Bar
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.1),
+                    spreadRadius: 1,
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  // Previous Day Button
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.chevron_left_rounded, size: 40),
+                      color: Theme.of(context).colorScheme.primary,
+                      onPressed: () {
+                        selectedDate.value = selectedDate.value.subtract(const Duration(days: 1));
+                      },
+                      tooltip: 'วันก่อนหน้า',
+                    ),
+                  ),
+                  // Date Display & Picker
+                  Expanded(
+                    child: InkWell(
+                      onTap: () async {
+                        final pickedDate = await showDatePicker(
+                          context: context,
+                          initialDate: selectedDate.value,
+                          firstDate: DateTime(2020),
+                          lastDate: DateTime(2100),
+                          builder: (context, child) {
+                            return Theme(
+                              data: Theme.of(context).copyWith(
+                                textTheme: Theme.of(context).textTheme.copyWith(
+                                  headlineMedium: const TextStyle(fontSize: 28),
+                                  titleLarge: const TextStyle(fontSize: 22),
+                                  labelLarge: const TextStyle(fontSize: 18),
+                                ),
+                              ),
+                              child: child!,
+                            );
+                          },
+                        );
+                        if (pickedDate != null) {
+                          selectedDate.value = pickedDate;
+                        }
+                      },
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 12),
+                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                            width: 2,
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              _formatDate(selectedDate.value),
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _formatDayName(selectedDate.value),
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey[600],
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Next Day Button
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.chevron_right_rounded, size: 40),
+                      color: Theme.of(context).colorScheme.primary,
+                      onPressed: () {
+                        selectedDate.value = selectedDate.value.add(const Duration(days: 1));
+                      },
+                      tooltip: 'วันถัดไป',
+                    ),
+                  ),
+                ],
+              ),
+            ),
             // Items list
             Expanded(
               child: _buildItemList(
@@ -128,7 +253,10 @@ class ItemListScreen extends HookConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push(AppRoutes.addItem),
+        onPressed: () {
+          final dateStr = '${selectedDate.value.year}-${selectedDate.value.month.toString().padLeft(2, '0')}-${selectedDate.value.day.toString().padLeft(2, '0')}';
+          context.push(AppRoutes.addItem, extra: dateStr);
+        },
         icon: const Icon(Icons.add, size: 28),
         label: const Text(
           'เพิ่มรายการ',
@@ -281,7 +409,7 @@ class ItemListScreen extends HookConsumerWidget {
         borderRadius: BorderRadius.circular(16),
         onTap: () => context.push(
           AppRoutes.editItem,
-          extra: item,
+          extra: {'item': item, 'date': item.date},
         ),
         child: Padding(
           padding: const EdgeInsets.all(20.0),
@@ -379,7 +507,7 @@ class ItemListScreen extends HookConsumerWidget {
                   tooltip: 'แก้ไข',
                   onPressed: () => context.push(
                     AppRoutes.editItem,
-                    extra: item,
+                    extra: {'item': item, 'date': item.date},
                   ),
                 ),
               ),
@@ -388,5 +516,25 @@ class ItemListScreen extends HookConsumerWidget {
         ),
       ),
     );
+  }
+
+  /// Format date in Thai Buddhist calendar format
+  String _formatDate(DateTime date) {
+    final thaiMonths = [
+      'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
+      'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
+    ];
+    final day = date.day;
+    final month = thaiMonths[date.month - 1];
+    final year = date.year + 543; // Buddhist calendar
+    return '$day $month $year';
+  }
+
+  /// Format day name in Thai
+  String _formatDayName(DateTime date) {
+    final thaiDays = [
+      'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์', 'อาทิตย์'
+    ];
+    return thaiDays[date.weekday - 1];
   }
 }

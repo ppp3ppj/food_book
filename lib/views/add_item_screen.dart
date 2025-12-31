@@ -7,7 +7,9 @@ import '../providers/item_provider.dart';
 /// Add Item Screen - Senior-friendly design with Thai language
 /// Performance optimized with hooks for form management
 class AddItemScreen extends HookConsumerWidget {
-  const AddItemScreen({super.key});
+  final String? date;
+  
+  const AddItemScreen({super.key, this.date});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -33,6 +35,7 @@ class AddItemScreen extends HookConsumerWidget {
             name,
             price,
             amount: amount,
+            date: date,
           );
 
       if (success && context.mounted) {

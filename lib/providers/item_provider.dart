@@ -48,16 +48,20 @@ class ItemNotifier extends Notifier<ItemState> {
 
   AppDatabase get _database => ref.read(databaseProvider);
 
-  /// Load all items from database
-  Future<void> loadItems() async {
+  /// Load items for a specific date
+  Future<void> loadItems({String? date}) async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final result = _database.query('SELECT * FROM items ORDER BY created_at DESC');
+      final dateFilter = date ?? _formatDate(DateTime.now());
+      final result = _database.query(
+        'SELECT * FROM items WHERE date = ? ORDER BY created_at DESC',
+        [dateFilter],
+      );
       final itemList = result.map((row) => ItemModel.fromMap(row)).toList();
       
       state = state.copyWith(items: itemList, isLoading: false);
-      debugPrint('📋 Loaded ${itemList.length} items');
+      debugPrint('📋 Loaded ${itemList.length} items for date: $dateFilter');
     } catch (e) {
       state = state.copyWith(
         error: 'Failed to load items: $e',
@@ -67,19 +71,25 @@ class ItemNotifier extends Notifier<ItemState> {
     }
   }
 
-  /// Create new item
-  Future<bool> createItem(String name, double price, {int amount = 0}) async {
+  /// Format DateTime to YYYY-MM-DD string
+  String _formatDate(DateTime date) {
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
+
+  /// Create new item with date
+  Future<bool> createItem(String name, double price, {int amount = 0, String? date}) async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
+      final itemDate = date ?? _formatDate(DateTime.now());
       _database.execute(
-        'INSERT INTO items (name, price, amount) VALUES (?, ?, ?)',
-        [name, price, amount],
+        'INSERT INTO items (name, price, amount, date) VALUES (?, ?, ?, ?)',
+        [name, price, amount, itemDate],
       );
       
-      debugPrint('✅ Item created: $name - ฿$price');
+      debugPrint('✅ Item created: $name - ฿$price for date: $itemDate');
       
-      await loadItems();
+      await loadItems(date: itemDate);
       return true;
     } catch (e) {
       state = state.copyWith(
@@ -92,18 +102,19 @@ class ItemNotifier extends Notifier<ItemState> {
   }
 
   /// Update existing item
-  Future<bool> updateItem(int id, String name, double price, {int? amount}) async {
+  Future<bool> updateItem(int id, String name, double price, {int? amount, String? date}) async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
+      final itemDate = date ?? _formatDate(DateTime.now());
       _database.execute(
-        'UPDATE items SET name = ?, price = ?, amount = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-        [name, price, amount ?? 0, id],
+        'UPDATE items SET name = ?, price = ?, amount = ?, date = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+        [name, price, amount ?? 0, itemDate, id],
       );
       
       debugPrint('✅ Item updated: ID $id');
       
-      await loadItems();
+      await loadItems(date: itemDate);
       return true;
     } catch (e) {
       state = state.copyWith(

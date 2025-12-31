@@ -4,6 +4,7 @@ class ItemModel {
   final String name;
   final double price;
   final int amount;
+  final String date; // Date in YYYY-MM-DD format
   final String? createdAt;
   final String? updatedAt;
 
@@ -12,6 +13,7 @@ class ItemModel {
     required this.name,
     required this.price,
     this.amount = 0,
+    required this.date,
     this.createdAt,
     this.updatedAt,
   });
@@ -23,6 +25,7 @@ class ItemModel {
       name: map['name'] as String,
       price: (map['price'] as num).toDouble(),
       amount: map['amount'] as int? ?? 0,
+      date: map['date'] as String,
       createdAt: map['created_at'] as String?,
       updatedAt: map['updated_at'] as String?,
     );
@@ -35,6 +38,7 @@ class ItemModel {
       'name': name,
       'price': price,
       'amount': amount,
+      'date': date,
       'created_at': createdAt,
       'updated_at': updatedAt,
     };
@@ -46,6 +50,7 @@ class ItemModel {
     String? name,
     double? price,
     int? amount,
+    String? date,
     String? createdAt,
     String? updatedAt,
   }) {
@@ -54,6 +59,7 @@ class ItemModel {
       name: name ?? this.name,
       price: price ?? this.price,
       amount: amount ?? this.amount,
+      date: date ?? this.date,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

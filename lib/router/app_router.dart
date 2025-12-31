@@ -34,9 +34,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.addItem,
         name: 'add-item',
-        pageBuilder: (context, state) => const MaterialPage(
-          child: AddItemScreen(),
-        ),
+        pageBuilder: (context, state) {
+          final date = state.extra as String?;
+          return MaterialPage(
+            child: AddItemScreen(date: date),
+          );
+        },
       ),
       
       // Edit Item route with item parameter
@@ -44,9 +47,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.editItem,
         name: 'edit-item',
         pageBuilder: (context, state) {
-          final item = state.extra as ItemModel;
+          final params = state.extra as Map<String, dynamic>;
+          final item = params['item'] as ItemModel;
+          final date = params['date'] as String?;
           return MaterialPage(
-            child: EditItemScreen(item: item),
+            child: EditItemScreen(item: item, date: date),
           );
         },
       ),
