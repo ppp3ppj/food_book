@@ -17,6 +17,7 @@ class MenuAnalysisScreen extends HookConsumerWidget {
     final startDate = useState<DateTime?>(null);
     final endDate = useState<DateTime?>(null);
     final isLoading = useState(false);
+    final hasSearched = useState(false);
     final items = useState<List<ItemModel>>([]);
     final groupedByDate = useState<Map<String, List<ItemModel>>>({});
 
@@ -25,6 +26,7 @@ class MenuAnalysisScreen extends HookConsumerWidget {
       if (startDate.value == null || endDate.value == null) return;
 
       isLoading.value = true;
+      hasSearched.value = true;
       try {
         final start = _formatDate(startDate.value!);
         final end = _formatDate(endDate.value!);
@@ -250,34 +252,11 @@ class MenuAnalysisScreen extends HookConsumerWidget {
                     ),
                   )
                 : items.value.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.analytics_outlined,
-                          size: 80,
-                          color: Colors.grey[400],
-                        ),
-                        const SizedBox(height: 20),
-                        Text(
-                          'เลือกช่วงวันที่',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey[700],
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          'เพื่อดูเมนูอาหารในช่วงเวลาที่เลือก',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
+                ? _buildEmptyState(
+                    context,
+                    hasSearched.value,
+                    startDate.value,
+                    endDate.value,
                   )
                 : ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -296,6 +275,168 @@ class MenuAnalysisScreen extends HookConsumerWidget {
 
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
+
+  /// Build empty state based on context
+  Widget _buildEmptyState(
+    BuildContext context,
+    bool hasSearched,
+    DateTime? startDate,
+    DateTime? endDate,
+  ) {
+    if (!hasSearched) {
+      // Initial state - no search performed yet
+      return Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(50),
+                ),
+                child: Icon(
+                  Icons.analytics_outlined,
+                  size: 56,
+                  color: Colors.blue[700],
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'เริ่มวิเคราะห์เมนู',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[800],
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'เลือกวันที่เริ่มต้นและสิ้นสุด\nแล้วกดปุ่ม "ดูข้อมูล"',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  height: 1.4,
+                  color: Colors.grey[600],
+                ),
+              ),
+              const SizedBox(height: 20),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.orange[50],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.orange[200]!),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.lightbulb_outline,
+                      color: Colors.orange[700],
+                      size: 22,
+                    ),
+                    const SizedBox(width: 10),
+                    Flexible(
+                      child: Text(
+                        'ดูสรุปเมนูอาหารในช่วงเวลาที่ต้องการ',
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: Colors.orange[900],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    } else {
+      // Search performed but no results found
+      final dateRangeText = startDate != null && endDate != null
+          ? '${_formatDateDisplay(startDate)} - ${_formatDateDisplay(endDate)}'
+          : '';
+
+      return Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(50),
+                ),
+                child: Icon(
+                  Icons.inbox_outlined,
+                  size: 56,
+                  color: Colors.grey[400],
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'ไม่พบข้อมูล',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[800],
+                ),
+              ),
+              const SizedBox(height: 10),
+              if (dateRangeText.isNotEmpty) ...[
+                Text(
+                  dateRangeText,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.blue[700],
+                  ),
+                ),
+                const SizedBox(height: 10),
+              ],
+              Text(
+                'ไม่มีรายการอาหารในช่วงวันที่นี้',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  height: 1.4,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+  }
+
+  String _formatDateDisplay(DateTime date) {
+    final thaiMonths = [
+      'ม.ค.',
+      'ก.พ.',
+      'มี.ค.',
+      'เม.ย.',
+      'พ.ค.',
+      'มิ.ย.',
+      'ก.ค.',
+      'ส.ค.',
+      'ก.ย.',
+      'ต.ค.',
+      'พ.ย.',
+      'ธ.ค.',
+    ];
+    return '${date.day} ${thaiMonths[date.month - 1]} ${date.year + 543}';
   }
 }
 
