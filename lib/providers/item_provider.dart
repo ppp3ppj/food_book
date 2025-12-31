@@ -11,11 +11,7 @@ class ItemState {
   final bool isLoading;
   final String? error;
 
-  const ItemState({
-    this.items = const [],
-    this.isLoading = false,
-    this.error,
-  });
+  const ItemState({this.items = const [], this.isLoading = false, this.error});
 
   // Getters for convenience
   bool get hasItems => items.isNotEmpty;
@@ -23,11 +19,7 @@ class ItemState {
 
   /// Create a copy of the state with updated fields
   /// This ensures immutability and proper state updates
-  ItemState copyWith({
-    List<ItemModel>? items,
-    bool? isLoading,
-    String? error,
-  }) {
+  ItemState copyWith({List<ItemModel>? items, bool? isLoading, String? error}) {
     return ItemState(
       items: items ?? this.items,
       isLoading: isLoading ?? this.isLoading,
@@ -39,6 +31,10 @@ class ItemState {
 /// Notifier for managing item state and business logic
 /// Replaces the old ChangeNotifier-based ItemService for better performance
 class ItemNotifier extends Notifier<ItemState> {
+  // Cache for recently loaded dates (max 7 days)
+  final Map<String, List<ItemModel>> _dateCache = {};
+  static const int _maxCacheSize = 7;
+
   @override
   ItemState build() {
     // Load items on initialization
@@ -48,18 +44,40 @@ class ItemNotifier extends Notifier<ItemState> {
 
   AppDatabase get _database => ref.read(databaseProvider);
 
-  /// Load items for a specific date
+  /// Load items for a specific date with caching
   Future<void> loadItems({String? date}) async {
+    final dateFilter = date ?? _formatDate(DateTime.now());
+
+    // Check cache first
+    if (_dateCache.containsKey(dateFilter)) {
+      debugPrint('📦 Using cached data for date: $dateFilter');
+      state = state.copyWith(
+        items: _dateCache[dateFilter]!,
+        isLoading: false,
+        error: null,
+      );
+      return;
+    }
+
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final dateFilter = date ?? _formatDate(DateTime.now());
       final result = _database.query(
         'SELECT * FROM items WHERE date = ? ORDER BY created_at DESC',
         [dateFilter],
       );
       final itemList = result.map((row) => ItemModel.fromMap(row)).toList();
-      
+
+      // Add to cache
+      _dateCache[dateFilter] = itemList;
+
+      // Limit cache size
+      if (_dateCache.length > _maxCacheSize) {
+        final firstKey = _dateCache.keys.first;
+        _dateCache.remove(firstKey);
+        debugPrint('🗑️ Removed oldest cache: $firstKey');
+      }
+
       state = state.copyWith(items: itemList, isLoading: false);
       debugPrint('📋 Loaded ${itemList.length} items for date: $dateFilter');
     } catch (e) {
@@ -71,13 +89,25 @@ class ItemNotifier extends Notifier<ItemState> {
     }
   }
 
+  /// Clear cache for a specific date (call after create/update/delete)
+  void _clearDateCache(String date) {
+    _dateCache.remove(date);
+    debugPrint('🧹 Cleared cache for date: $date');
+  }
+
   /// Format DateTime to YYYY-MM-DD string
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 
   /// Create new item with date
-  Future<bool> createItem(String name, double price, {int amount = 0, String? date, String? reason}) async {
+  Future<bool> createItem(
+    String name,
+    double price, {
+    int amount = 0,
+    String? date,
+    String? reason,
+  }) async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
@@ -86,9 +116,11 @@ class ItemNotifier extends Notifier<ItemState> {
         'INSERT INTO items (name, price, amount, date, reason) VALUES (?, ?, ?, ?, ?)',
         [name, price, amount, itemDate, reason],
       );
-      
+
       debugPrint('✅ Item created: $name - ฿$price for date: $itemDate');
-      
+
+      // Clear cache for this date
+      _clearDateCache(itemDate);
       await loadItems(date: itemDate);
       return true;
     } catch (e) {
@@ -102,7 +134,14 @@ class ItemNotifier extends Notifier<ItemState> {
   }
 
   /// Update existing item
-  Future<bool> updateItem(int id, String name, double price, {int? amount, String? date, String? reason}) async {
+  Future<bool> updateItem(
+    int id,
+    String name,
+    double price, {
+    int? amount,
+    String? date,
+    String? reason,
+  }) async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
@@ -111,9 +150,11 @@ class ItemNotifier extends Notifier<ItemState> {
         'UPDATE items SET name = ?, price = ?, amount = ?, date = ?, reason = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
         [name, price, amount ?? 0, itemDate, reason, id],
       );
-      
+
       debugPrint('✅ Item updated: ID $id');
-      
+
+      // Clear cache for this date
+      _clearDateCache(itemDate);
       await loadItems(date: itemDate);
       return true;
     } catch (e) {
@@ -132,9 +173,11 @@ class ItemNotifier extends Notifier<ItemState> {
 
     try {
       _database.execute('DELETE FROM items WHERE id = ?', [id]);
-      
+
       debugPrint('✅ Item deleted: ID $id');
-      
+
+      // Clear all cache since we don't know the date
+      _dateCache.clear();
       await loadItems();
       return true;
     } catch (e) {
@@ -150,7 +193,7 @@ class ItemNotifier extends Notifier<ItemState> {
   /// Search items by query (name search)
   List<ItemModel> searchItems(String query) {
     if (query.isEmpty) return state.items;
-    
+
     final lowerQuery = query.toLowerCase();
     return state.items.where((item) {
       return item.name.toLowerCase().contains(lowerQuery);
@@ -167,11 +210,14 @@ final itemProvider = NotifierProvider<ItemNotifier, ItemState>(() {
 
 /// Computed provider for filtered items based on search query
 /// This demonstrates how to create derived state without rebuilding entire widget tree
-final filteredItemsProvider = Provider.family<List<ItemModel>, String>((ref, query) {
+final filteredItemsProvider = Provider.family<List<ItemModel>, String>((
+  ref,
+  query,
+) {
   final itemState = ref.watch(itemProvider);
-  
+
   if (query.isEmpty) return itemState.items;
-  
+
   final lowerQuery = query.toLowerCase();
   return itemState.items.where((item) {
     return item.name.toLowerCase().contains(lowerQuery);

@@ -7,6 +7,7 @@ import '../models/item_model.dart';
 import '../providers/item_provider.dart';
 import '../providers/settings_provider.dart';
 import '../router/app_router.dart';
+import '../widgets/item_skeleton_loader.dart';
 
 /// Item List Screen - Senior-friendly design with Thai language
 /// Performance optimized with HookConsumerWidget
@@ -314,24 +315,9 @@ class ItemListScreen extends HookConsumerWidget {
     List<ItemModel> filteredItems,
     String searchQuery,
   ) {
-    // Loading state
+    // Loading state - Show skeleton loader
     if (itemState.isLoading) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const CircularProgressIndicator(strokeWidth: 5),
-              const SizedBox(height: 24),
-              Text(
-                'กำลังโหลด...',
-                style: TextStyle(fontSize: 22, color: Colors.grey[700]),
-              ),
-            ],
-          ),
-        ),
-      );
+      return const ItemSkeletonLoader(count: 5);
     }
 
     // Error state
@@ -425,9 +411,7 @@ class ItemListScreen extends HookConsumerWidget {
       itemBuilder: (context, index) {
         final item = filteredItems[index];
         // RepaintBoundary prevents unnecessary repaints of individual items
-        return RepaintBoundary(
-          child: _buildItemCard(context, item),
-        );
+        return RepaintBoundary(child: _buildItemCard(context, item));
       },
     );
   }
@@ -669,7 +653,8 @@ class ItemListScreen extends HookConsumerWidget {
     // Items
     for (var i = 0; i < items.length; i++) {
       final item = items[i];
-      final itemText = '${i + 1}. ${item.name} - ฿${item.price.toStringAsFixed(2)}';
+      final itemText =
+          '${i + 1}. ${item.name} - ฿${item.price.toStringAsFixed(2)}';
       if (item.reason != null && item.reason!.isNotEmpty) {
         buffer.writeln('$itemText (${item.reason})');
       } else {
