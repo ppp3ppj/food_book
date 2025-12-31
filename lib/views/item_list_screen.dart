@@ -63,7 +63,7 @@ class ItemListScreen extends HookConsumerWidget {
               tooltip: 'แชร์เมนู',
               iconSize: 28,
               onPressed: () =>
-                  _shareMenu(context, ref, selectedDate.value, filteredItems),
+                  _shareMenu(context, ref, selectedDate.value, itemState.items),
             ),
           ),
           Padding(
