@@ -16,6 +16,7 @@ class ItemListScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Local state management with hooks (no setState needed)
     final searchController = useTextEditingController();
+    final searchFocusNode = useFocusNode();
     final searchQuery = useState('');
     
     // Watch item state from Riverpod provider
@@ -45,38 +46,46 @@ class ItemListScreen extends HookConsumerWidget {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // Search bar
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              controller: searchController,
-              decoration: InputDecoration(
-                labelText: 'Search items',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+      body: GestureDetector(
+        onTap: () {
+          // Unfocus when tapping outside
+          searchFocusNode.unfocus();
+        },
+        child: Column(
+          children: [
+            // Search bar
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: TextField(
+                controller: searchController,
+                focusNode: searchFocusNode,
+                autofocus: false,
+                decoration: InputDecoration(
+                  labelText: 'Search items',
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  suffixIcon: searchQuery.value.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            searchController.clear();
+                            searchQuery.value = '';
+                            searchFocusNode.unfocus();
+                          },
+                        )
+                      : null,
                 ),
-                suffixIcon: searchQuery.value.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          searchController.clear();
-                          searchQuery.value = '';
-                        },
-                      )
-                    : null,
+                onChanged: (value) {
+                  searchQuery.value = value;
+                },
               ),
-              onChanged: (value) {
-                searchQuery.value = value;
-              },
             ),
-          ),
-          // Items list
-          Expanded(
-            child: _buildItemList(
-              context,
+            // Items list
+            Expanded(
+              child: _buildItemList(
+                context,
               ref,
               itemState,
               filteredItems,
@@ -84,6 +93,7 @@ class ItemListScreen extends HookConsumerWidget {
             ),
           ),
         ],
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push(AppRoutes.addItem),
