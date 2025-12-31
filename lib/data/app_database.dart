@@ -29,11 +29,30 @@ class AppDatabase {
       
       _database = sqlite3.open(_databasePath!);
       
+      // Create tables
+      _createTables();
+      
       print('✅ Database connection opened successfully!');
     } catch (e) {
       print('❌ Database initialization failed: $e');
       rethrow;
     }
+  }
+
+  /// Create database tables
+  void _createTables() {
+    _database!.execute('''
+      CREATE TABLE IF NOT EXISTS items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        price REAL NOT NULL DEFAULT 0.0,
+        amount INTEGER DEFAULT 0,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT
+      )
+    ''');
+    
+    print('📋 Tables created successfully');
   }
 
   /// Test database connection

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'data/app_database.dart';
+import 'services/item_service.dart';
+import 'views/item_list_screen.dart';
 
 void main() async {
   // Ensure Flutter binding is initialized
@@ -32,8 +34,13 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return Provider<AppDatabase>.value(
-      value: database,
+    return MultiProvider(
+      providers: [
+        Provider<AppDatabase>.value(value: database),
+        ChangeNotifierProvider<ItemService>(
+          create: (_) => ItemService(database),
+        ),
+      ],
       child: MaterialApp(
         title: 'Food Book POS',
         debugShowCheckedModeBanner: false,
@@ -41,7 +48,7 @@ class MyApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
           useMaterial3: true,
         ),
-        home: const MyHomePage(title: 'Food Book POS - DB Connected'),
+        home: const ItemListScreen(),
       ),
     );
   }
