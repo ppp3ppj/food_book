@@ -104,7 +104,6 @@ class ItemNotifier extends Notifier<ItemState> {
   Future<bool> createItem(
     String name,
     double price, {
-    int amount = 0,
     String? date,
     String? reason,
   }) async {
@@ -113,8 +112,8 @@ class ItemNotifier extends Notifier<ItemState> {
     try {
       final itemDate = date ?? _formatDate(DateTime.now());
       _database.execute(
-        'INSERT INTO items (name, price, amount, date, reason) VALUES (?, ?, ?, ?, ?)',
-        [name, price, amount, itemDate, reason],
+        'INSERT INTO items (name, price, date, reason) VALUES (?, ?, ?, ?)',
+        [name, price, itemDate, reason],
       );
 
       debugPrint('✅ Item created: $name - ฿$price for date: $itemDate');
@@ -138,7 +137,6 @@ class ItemNotifier extends Notifier<ItemState> {
     int id,
     String name,
     double price, {
-    int? amount,
     String? date,
     String? reason,
   }) async {
@@ -147,8 +145,8 @@ class ItemNotifier extends Notifier<ItemState> {
     try {
       final itemDate = date ?? _formatDate(DateTime.now());
       _database.execute(
-        'UPDATE items SET name = ?, price = ?, amount = ?, date = ?, reason = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-        [name, price, amount ?? 0, itemDate, reason, id],
+        'UPDATE items SET name = ?, price = ?, date = ?, reason = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+        [name, price, itemDate, reason, id],
       );
 
       debugPrint('✅ Item updated: ID $id');

@@ -3,7 +3,6 @@ class ItemModel {
   final int? id;
   final String name;
   final double price;
-  final int amount;
   final String date; // Date in YYYY-MM-DD format
   final String? reason; // Optional reason/note (e.g., เผ็ดมาก)
   final String? createdAt;
@@ -13,7 +12,6 @@ class ItemModel {
     this.id,
     required this.name,
     required this.price,
-    this.amount = 0,
     required this.date,
     this.reason,
     this.createdAt,
@@ -26,7 +24,6 @@ class ItemModel {
       id: map['id'] as int?,
       name: map['name'] as String,
       price: (map['price'] as num).toDouble(),
-      amount: map['amount'] as int? ?? 0,
       date: map['date'] as String,
       reason: map['reason'] as String?,
       createdAt: map['created_at'] as String?,
@@ -40,7 +37,6 @@ class ItemModel {
       'id': id,
       'name': name,
       'price': price,
-      'amount': amount,
       'date': date,
       'reason': reason,
       'created_at': createdAt,
@@ -53,7 +49,6 @@ class ItemModel {
     int? id,
     String? name,
     double? price,
-    int? amount,
     String? date,
     String? reason,
     String? createdAt,
@@ -63,7 +58,6 @@ class ItemModel {
       id: id ?? this.id,
       name: name ?? this.name,
       price: price ?? this.price,
-      amount: amount ?? this.amount,
       date: date ?? this.date,
       reason: reason ?? this.reason,
       createdAt: createdAt ?? this.createdAt,
@@ -73,6 +67,6 @@ class ItemModel {
 
   @override
   String toString() {
-    return 'ItemModel(id: $id, name: $name, price: $price, amount: $amount)';
+    return 'ItemModel(id: $id, name: $name, price: $price)';
   }
 }

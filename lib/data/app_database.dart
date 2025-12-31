@@ -45,7 +45,6 @@ class AppDatabase {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         price REAL NOT NULL DEFAULT 0.0,
-        amount INTEGER DEFAULT 0,
         date TEXT NOT NULL,
         reason TEXT,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,

@@ -414,26 +414,7 @@ class ItemListScreen extends HookConsumerWidget {
                         ),
                       ],
                     ),
-                    if (item.amount > 0) ...[
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.inventory_2_outlined,
-                            size: 18,
-                            color: Colors.grey[600],
-                          ),
-                          const SizedBox(width: 2),
-                          Text(
-                            'จำนวน: ${item.amount}',
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: Colors.grey[700],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+
                     if (item.reason != null && item.reason!.isNotEmpty) ...[
                       const SizedBox(height: 4),
                       Row(

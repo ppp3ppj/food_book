@@ -17,11 +17,12 @@ class EditItemScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Form key with hooks
     final formKey = useMemoized(() => GlobalKey<FormState>());
-    
+
     // Text controllers with hooks (initialized with item data, auto-disposed)
     final nameController = useTextEditingController(text: item.name);
-    final priceController = useTextEditingController(text: item.price.toString());
-    final amountController = useTextEditingController(text: item.amount.toString());
+    final priceController = useTextEditingController(
+      text: item.price.toString(),
+    );
     final reasonController = useTextEditingController(text: item.reason ?? '');
 
     // Update item callback
@@ -32,14 +33,16 @@ class EditItemScreen extends HookConsumerWidget {
 
       final name = nameController.text.trim();
       final price = double.parse(priceController.text.trim());
-      final amount = int.tryParse(amountController.text.trim()) ?? 0;
-      final reason = reasonController.text.trim().isEmpty ? null : reasonController.text.trim();
+      final reason = reasonController.text.trim().isEmpty
+          ? null
+          : reasonController.text.trim();
 
-      final success = await ref.read(itemProvider.notifier).updateItem(
+      final success = await ref
+          .read(itemProvider.notifier)
+          .updateItem(
             item.id!,
             name,
             price,
-            amount: amount,
             date: date ?? item.date,
             reason: reason,
           );
@@ -90,10 +93,7 @@ class EditItemScreen extends HookConsumerWidget {
                   vertical: 16,
                 ),
               ),
-              child: const Text(
-                'ยกเลิก',
-                style: TextStyle(fontSize: 20),
-              ),
+              child: const Text('ยกเลิก', style: TextStyle(fontSize: 20)),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -118,7 +118,9 @@ class EditItemScreen extends HookConsumerWidget {
       );
 
       if (confirmed == true && context.mounted) {
-        final success = await ref.read(itemProvider.notifier).deleteItem(item.id!);
+        final success = await ref
+            .read(itemProvider.notifier)
+            .deleteItem(item.id!);
 
         if (success && context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -225,7 +227,7 @@ class EditItemScreen extends HookConsumerWidget {
               },
             ),
             const SizedBox(height: 28),
-            
+
             // Price Field
             Text(
               'ราคา (บาท)',
@@ -242,7 +244,11 @@ class EditItemScreen extends HookConsumerWidget {
               decoration: InputDecoration(
                 hintText: 'พิมพ์ราคา...',
                 hintStyle: TextStyle(fontSize: 18, color: Colors.grey[400]),
-                prefixIcon: Icon(Icons.attach_money, size: 28, color: Colors.green[700]),
+                prefixIcon: Icon(
+                  Icons.attach_money,
+                  size: 28,
+                  color: Colors.green[700],
+                ),
                 filled: true,
                 fillColor: Colors.white,
                 border: OutlineInputBorder(
@@ -269,7 +275,9 @@ class EditItemScreen extends HookConsumerWidget {
                   vertical: 20,
                 ),
               ),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
                   return 'กรุณาใส่ราคา';
@@ -282,63 +290,7 @@ class EditItemScreen extends HookConsumerWidget {
               },
             ),
             const SizedBox(height: 28),
-            
-            // Amount Field
-            Text(
-              'จำนวน',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[800],
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: amountController,
-              style: const TextStyle(fontSize: 20),
-              decoration: InputDecoration(
-                hintText: 'พิมพ์จำนวน...',
-                hintStyle: TextStyle(fontSize: 18, color: Colors.grey[400]),
-                prefixIcon: Icon(Icons.inventory_2_outlined, size: 28, color: Colors.blue[700]),
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: Colors.grey[300]!, width: 2),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: Colors.grey[300]!, width: 2),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(
-                    color: Theme.of(context).colorScheme.primary,
-                    width: 3,
-                  ),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(color: Colors.red, width: 2),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 20,
-                ),
-              ),
-              keyboardType: TextInputType.number,
-              validator: (value) {
-                if (value != null && value.isNotEmpty) {
-                  final amount = int.tryParse(value);
-                  if (amount == null || amount < 0) {
-                    return 'กรุณาใส่จำนวนที่ถูกต้อง';
-                  }
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 28),
-            
+
             // Reason Field (Optional)
             Text(
               'หมายเหตุ (ไม่บังคับ)',
@@ -355,8 +307,13 @@ class EditItemScreen extends HookConsumerWidget {
               decoration: InputDecoration(
                 hintText: 'เช่น: เผ็ดมาก, ไม่ใส่ผัก...',
                 hintStyle: TextStyle(fontSize: 18, color: Colors.grey[400]),
-                prefixIcon: Icon(Icons.note_outlined, size: 28, color: Colors.orange[700]),
-                helperText: 'ระบุรายละเอียดเพิ่มเติม เช่น ความเผ็ด หรือข้อควรระวัง',
+                prefixIcon: Icon(
+                  Icons.note_outlined,
+                  size: 28,
+                  color: Colors.orange[700],
+                ),
+                helperText:
+                    'ระบุรายละเอียดเพิ่มเติม เช่น ความเผ็ด หรือข้อควรระวัง',
                 helperStyle: const TextStyle(fontSize: 16),
                 filled: true,
                 fillColor: Colors.white,
@@ -382,7 +339,7 @@ class EditItemScreen extends HookConsumerWidget {
               ),
             ),
             const SizedBox(height: 40),
-            
+
             // Update Button
             ElevatedButton.icon(
               onPressed: updateItem,
