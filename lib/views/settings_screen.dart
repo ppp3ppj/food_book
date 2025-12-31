@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../providers/settings_provider.dart';
 
 /// Settings Screen - Configure menu export settings
+/// Optimized with manual save button for better performance
 class SettingsScreen extends HookConsumerWidget {
   const SettingsScreen({super.key});
 
@@ -17,6 +18,38 @@ class SettingsScreen extends HookConsumerWidget {
     final footerController = useTextEditingController(
       text: settings.menuFooterNote,
     );
+
+    // Track if there are unsaved changes
+    final hasChanges = useState(false);
+
+    // Save settings function
+    Future<void> saveSettings() async {
+      final headerText = headerController.text.trim();
+      final footerNote = footerController.text.trim();
+
+      // Batch update both settings in one operation
+      await ref.read(settingsProvider.notifier).updateHeaderText(headerText);
+      await ref.read(settingsProvider.notifier).updateFooterNote(footerNote);
+
+      hasChanges.value = false;
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              'บันทึกการตั้งค่าเรียบร้อย',
+              style: TextStyle(fontSize: 16),
+            ),
+            backgroundColor: Colors.green[700],
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    }
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -110,9 +143,7 @@ class SettingsScreen extends HookConsumerWidget {
                       ),
                     ),
                     onChanged: (value) {
-                      ref
-                          .read(settingsProvider.notifier)
-                          .updateHeaderText(value);
+                      hasChanges.value = true;
                     },
                   ),
                 ],
@@ -194,9 +225,7 @@ class SettingsScreen extends HookConsumerWidget {
                       ),
                     ),
                     onChanged: (value) {
-                      ref
-                          .read(settingsProvider.notifier)
-                          .updateFooterNote(value);
+                      hasChanges.value = true;
                     },
                   ),
                 ],
@@ -292,6 +321,34 @@ class SettingsScreen extends HookConsumerWidget {
               ),
             ),
           ),
+
+          const SizedBox(height: 24),
+
+          // Save Button
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: ElevatedButton.icon(
+              onPressed: hasChanges.value ? saveSettings : null,
+              icon: const Icon(Icons.save_rounded, size: 28),
+              label: const Text(
+                'บันทึกการตั้งค่า',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                foregroundColor: Colors.white,
+                disabledBackgroundColor: Colors.grey[300],
+                disabledForegroundColor: Colors.grey[500],
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: hasChanges.value ? 3 : 0,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
         ],
       ),
     );

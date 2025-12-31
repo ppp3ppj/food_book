@@ -4,16 +4,24 @@ import '../models/settings_model.dart';
 
 /// Settings state provider
 class SettingsNotifier extends Notifier<SettingsModel> {
+  SharedPreferences? _prefsCache;
+
   @override
   SettingsModel build() {
     _loadSettings();
     return SettingsModel();
   }
 
+  /// Get cached SharedPreferences instance
+  Future<SharedPreferences> get _prefs async {
+    _prefsCache ??= await SharedPreferences.getInstance();
+    return _prefsCache!;
+  }
+
   /// Load settings from shared preferences
   Future<void> _loadSettings() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
+      final prefs = await _prefs;
       final headerText = prefs.getString('menuHeaderText') ?? 'เมนูอาหารวันนี้';
       final footerNote = prefs.getString('menuFooterNote') ?? '';
 
@@ -29,7 +37,7 @@ class SettingsNotifier extends Notifier<SettingsModel> {
   /// Update header text
   Future<void> updateHeaderText(String text) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
+      final prefs = await _prefs;
       await prefs.setString('menuHeaderText', text);
       state = state.copyWith(menuHeaderText: text);
     } catch (e) {
@@ -40,7 +48,7 @@ class SettingsNotifier extends Notifier<SettingsModel> {
   /// Update footer note
   Future<void> updateFooterNote(String note) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
+      final prefs = await _prefs;
       await prefs.setString('menuFooterNote', note);
       state = state.copyWith(menuFooterNote: note);
     } catch (e) {

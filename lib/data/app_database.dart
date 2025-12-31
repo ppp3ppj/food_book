@@ -23,14 +23,14 @@ class AppDatabase {
     try {
       final dbFolder = await getApplicationDocumentsDirectory();
       _databasePath = p.join(dbFolder.path, 'food_book.db');
-      
+
       print('📂 Database path: $_databasePath');
-      
+
       _database = sqlite3.open(_databasePath!);
-      
+
       // Create tables
       _createTables();
-      
+
       print('✅ Database connection opened successfully!');
     } catch (e) {
       print('❌ Database initialization failed: $e');
@@ -52,21 +52,33 @@ class AppDatabase {
         updated_at TEXT
       )
     ''');
-    
+
     // Add date column if it doesn't exist (for existing databases)
     try {
-      _database!.execute('ALTER TABLE items ADD COLUMN date TEXT NOT NULL DEFAULT "2025-01-01"');
+      _database!.execute(
+        'ALTER TABLE items ADD COLUMN date TEXT NOT NULL DEFAULT "2025-01-01"',
+      );
     } catch (e) {
       // Column already exists, ignore error
     }
-    
+
     // Add reason column if it doesn't exist (for existing databases)
     try {
       _database!.execute('ALTER TABLE items ADD COLUMN reason TEXT');
     } catch (e) {
       // Column already exists, ignore error
     }
-    
+
+    // Create index on date column for faster queries
+    try {
+      _database!.execute(
+        'CREATE INDEX IF NOT EXISTS idx_items_date ON items(date)',
+      );
+      print('📊 Database index created for date column');
+    } catch (e) {
+      print('⚠️ Index creation skipped: $e');
+    }
+
     print('📋 Tables created successfully');
   }
 
@@ -76,16 +88,16 @@ class AppDatabase {
       if (_database == null) {
         await initialize();
       }
-      
+
       // Execute a simple query to test connection
       final result = _database!.select('SELECT 1 as test');
-      
+
       if (result.isNotEmpty) {
         print('✅ Database connection test successful!');
         print('📊 Test query result: ${result.first['test']}');
         return true;
       }
-      
+
       return false;
     } catch (e) {
       print('❌ Database connection test failed: $e');

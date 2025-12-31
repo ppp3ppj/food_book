@@ -418,18 +418,22 @@ class ItemListScreen extends HookConsumerWidget {
       );
     }
 
-    // Items list
+    // Items list - Optimized with RepaintBoundary for better performance
     return ListView.builder(
       itemCount: filteredItems.length,
       padding: const EdgeInsets.all(12),
       itemBuilder: (context, index) {
         final item = filteredItems[index];
-        return _buildItemCard(context, item);
+        // RepaintBoundary prevents unnecessary repaints of individual items
+        return RepaintBoundary(
+          child: _buildItemCard(context, item),
+        );
       },
     );
   }
 
   /// Build individual item card
+  /// Using const where possible for better performance
   Widget _buildItemCard(BuildContext context, ItemModel item) {
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
