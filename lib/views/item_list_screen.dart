@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/item_service.dart';
 import '../models/item_model.dart';
+import 'add_item_screen.dart';
+import 'edit_item_screen.dart';
 
 class ItemListScreen extends StatefulWidget {
   const ItemListScreen({super.key});
@@ -20,202 +22,17 @@ class _ItemListScreenState extends State<ItemListScreen> {
     super.dispose();
   }
 
-  void _showAddItemDialog() {
-    final nameController = TextEditingController();
-    final priceController = TextEditingController();
-    final amountController = TextEditingController(text: '0');
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add New Item'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(
-                labelText: 'Item Name',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: priceController,
-              decoration: const InputDecoration(
-                labelText: 'Price (฿)',
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.numberWithOptions(decimal: true),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: amountController,
-              decoration: const InputDecoration(
-                labelText: 'Amount (Optional)',
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.number,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final name = nameController.text.trim();
-              final priceText = priceController.text.trim();
-              final amountText = amountController.text.trim();
-
-              if (name.isEmpty || priceText.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Name and price are required')),
-                );
-                return;
-              }
-
-              final price = double.tryParse(priceText);
-              if (price == null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Invalid price')),
-                );
-                return;
-              }
-
-              final amount = int.tryParse(amountText) ?? 0;
-
-              final itemService = context.read<ItemService>();
-              final success = await itemService.createItem(name, price, amount: amount);
-
-              if (success && mounted) {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Item "$name" added successfully')),
-                );
-              }
-            },
-            child: const Text('Add'),
-          ),
-        ],
-      ),
+  void _navigateToAddItem() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const AddItemScreen()),
     );
   }
 
-  void _showEditItemDialog(ItemModel item) {
-    final nameController = TextEditingController(text: item.name);
-    final priceController = TextEditingController(text: item.price.toString());
-    final amountController = TextEditingController(text: item.amount.toString());
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Edit Item'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(
-                labelText: 'Item Name',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: priceController,
-              decoration: const InputDecoration(
-                labelText: 'Price (฿)',
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.numberWithOptions(decimal: true),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: amountController,
-              decoration: const InputDecoration(
-                labelText: 'Amount',
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.number,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final name = nameController.text.trim();
-              final priceText = priceController.text.trim();
-              final amountText = amountController.text.trim();
-
-              if (name.isEmpty || priceText.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Name and price are required')),
-                );
-                return;
-              }
-
-              final price = double.tryParse(priceText);
-              if (price == null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Invalid price')),
-                );
-                return;
-              }
-
-              final amount = int.tryParse(amountText) ?? 0;
-
-              final itemService = context.read<ItemService>();
-              final success = await itemService.updateItem(item.id!, name, price, amount: amount);
-
-              if (success && mounted) {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Item updated successfully')),
-                );
-              }
-            },
-            child: const Text('Update'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _confirmDelete(ItemModel item) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Item'),
-        content: Text('Are you sure you want to delete "${item.name}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: () async {
-              final itemService = context.read<ItemService>();
-              final success = await itemService.deleteItem(item.id!);
-
-              if (success && mounted) {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Item "${item.name}" deleted')),
-                );
-              }
-            },
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+  void _navigateToEditItem(ItemModel item) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => EditItemScreen(item: item)),
     );
   }
 
@@ -344,15 +161,11 @@ class _ItemListScreenState extends State<ItemListScreen> {
                             IconButton(
                               icon: const Icon(Icons.edit),
                               color: Colors.blue,
-                              onPressed: () => _showEditItemDialog(item),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete),
-                              color: Colors.red,
-                              onPressed: () => _confirmDelete(item),
+                              onPressed: () => _navigateToEditItem(item),
                             ),
                           ],
                         ),
+                        onTap: () => _navigateToEditItem(item),
                       ),
                     );
                   },
@@ -363,7 +176,7 @@ class _ItemListScreenState extends State<ItemListScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showAddItemDialog,
+        onPressed: _navigateToAddItem,
         icon: const Icon(Icons.add),
         label: const Text('Add Item'),
       ),
