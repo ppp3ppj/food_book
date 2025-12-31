@@ -46,20 +46,20 @@ class ItemListScreen extends HookConsumerWidget {
       appBar: AppBar(
         title: const Text(
           'รายการอาหาร',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         elevation: 0,
-        toolbarHeight: 72,
+        toolbarHeight: 56,
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 8.0),
             child: IconButton(
-              icon: const Icon(Icons.refresh, size: 32),
+              icon: const Icon(Icons.refresh, size: 28),
               tooltip: 'รีเฟรช',
-              iconSize: 32,
+              iconSize: 28,
               onPressed: () => ref.read(itemProvider.notifier).loadItems(),
             ),
           ),
@@ -73,17 +73,17 @@ class ItemListScreen extends HookConsumerWidget {
           children: [
             // Search bar
             Container(
-              padding: const EdgeInsets.all(20.0),
+              padding: const EdgeInsets.all(12.0),
               color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
               child: TextField(
                 controller: searchController,
                 focusNode: searchFocusNode,
                 autofocus: false,
-                style: const TextStyle(fontSize: 20),
+                style: const TextStyle(fontSize: 18),
                 decoration: InputDecoration(
                   hintText: 'ค้นหารายการอาหาร...',
-                  hintStyle: TextStyle(fontSize: 20, color: Colors.grey[400]),
-                  prefixIcon: const Icon(Icons.search, size: 32),
+                  hintStyle: TextStyle(fontSize: 18, color: Colors.grey[400]),
+                  prefixIcon: const Icon(Icons.search, size: 28),
                   filled: true,
                   fillColor: Colors.white,
                   border: OutlineInputBorder(
@@ -102,13 +102,13 @@ class ItemListScreen extends HookConsumerWidget {
                     ),
                   ),
                   contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 20,
+                    horizontal: 16,
+                    vertical: 14,
                   ),
                   suffixIcon: searchQuery.value.isNotEmpty
                       ? IconButton(
-                          icon: const Icon(Icons.clear, size: 28),
-                          iconSize: 28,
+                          icon: const Icon(Icons.clear, size: 24),
+                          iconSize: 24,
                           onPressed: () {
                             searchController.clear();
                             searchQuery.value = '';
@@ -124,7 +124,7 @@ class ItemListScreen extends HookConsumerWidget {
             ),
             // Date Navigation Bar
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
                 color: Colors.white,
                 boxShadow: [
@@ -140,14 +140,14 @@ class ItemListScreen extends HookConsumerWidget {
                 children: [
                   // Previous Day Button
                   Container(
-                    width: 64,
-                    height: 64,
+                    width: 48,
+                    height: 48,
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: IconButton(
-                      icon: const Icon(Icons.chevron_left_rounded, size: 40),
+                      icon: const Icon(Icons.chevron_left_rounded, size: 32),
                       color: Theme.of(context).colorScheme.primary,
                       onPressed: () {
                         selectedDate.value = selectedDate.value.subtract(const Duration(days: 1));
@@ -199,17 +199,17 @@ class ItemListScreen extends HookConsumerWidget {
                             Text(
                               _formatDate(selectedDate.value),
                               style: TextStyle(
-                                fontSize: 20,
+                                fontSize: 17,
                                 fontWeight: FontWeight.bold,
                                 color: Theme.of(context).colorScheme.primary,
                               ),
                               textAlign: TextAlign.center,
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 2),
                             Text(
                               _formatDayName(selectedDate.value),
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 14,
                                 color: Colors.grey[600],
                               ),
                               textAlign: TextAlign.center,
@@ -221,14 +221,14 @@ class ItemListScreen extends HookConsumerWidget {
                   ),
                   // Next Day Button
                   Container(
-                    width: 64,
-                    height: 64,
+                    width: 48,
+                    height: 48,
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: IconButton(
-                      icon: const Icon(Icons.chevron_right_rounded, size: 40),
+                      icon: const Icon(Icons.chevron_right_rounded, size: 32),
                       color: Theme.of(context).colorScheme.primary,
                       onPressed: () {
                         selectedDate.value = selectedDate.value.add(const Duration(days: 1));
@@ -257,10 +257,10 @@ class ItemListScreen extends HookConsumerWidget {
           final dateStr = '${selectedDate.value.year}-${selectedDate.value.month.toString().padLeft(2, '0')}-${selectedDate.value.day.toString().padLeft(2, '0')}';
           context.push(AppRoutes.addItem, extra: dateStr);
         },
-        icon: const Icon(Icons.add, size: 28),
+        icon: const Icon(Icons.add, size: 24),
         label: const Text(
           'เพิ่มรายการ',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
@@ -389,7 +389,7 @@ class ItemListScreen extends HookConsumerWidget {
     // Items list
     return ListView.builder(
       itemCount: filteredItems.length,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(12),
       itemBuilder: (context, index) {
         final item = filteredItems[index];
         return _buildItemCard(context, item);
@@ -400,41 +400,41 @@ class ItemListScreen extends HookConsumerWidget {
   /// Build individual item card
   Widget _buildItemCard(BuildContext context, ItemModel item) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      elevation: 3,
+      margin: const EdgeInsets.only(bottom: 10),
+      elevation: 2,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         onTap: () => context.push(
           AppRoutes.editItem,
           extra: {'item': item, 'date': item.date},
         ),
         child: Padding(
-          padding: const EdgeInsets.all(20.0),
+          padding: const EdgeInsets.all(12.0),
           child: Row(
             children: [
-              // Large icon/avatar
+              // Icon/avatar
               Container(
-                width: 72,
-                height: 72,
+                width: 52,
+                height: 52,
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.primary,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Center(
                   child: Text(
                     item.name[0].toUpperCase(),
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 32,
+                      fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: 20),
+              const SizedBox(width: 12),
               // Item details
               Expanded(
                 child: Column(
@@ -443,26 +443,26 @@ class ItemListScreen extends HookConsumerWidget {
                     Text(
                       item.name,
                       style: const TextStyle(
-                        fontSize: 22,
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        height: 1.3,
+                        height: 1.2,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     Row(
                       children: [
                         Icon(
                           Icons.attach_money,
-                          size: 24,
+                          size: 20,
                           color: Colors.green[700],
                         ),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: 2),
                         Text(
                           '฿${item.price.toStringAsFixed(2)}',
                           style: TextStyle(
-                            fontSize: 20,
+                            fontSize: 17,
                             fontWeight: FontWeight.w600,
                             color: Colors.green[700],
                           ),
@@ -470,19 +470,19 @@ class ItemListScreen extends HookConsumerWidget {
                       ],
                     ),
                     if (item.amount > 0) ...[
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 4),
                       Row(
                         children: [
                           Icon(
                             Icons.inventory_2_outlined,
-                            size: 22,
+                            size: 18,
                             color: Colors.grey[600],
                           ),
-                          const SizedBox(width: 4),
+                          const SizedBox(width: 2),
                           Text(
                             'จำนวน: ${item.amount}',
                             style: TextStyle(
-                              fontSize: 18,
+                              fontSize: 15,
                               color: Colors.grey[700],
                             ),
                           ),
@@ -494,15 +494,15 @@ class ItemListScreen extends HookConsumerWidget {
               ),
               // Edit button
               Container(
-                width: 56,
-                height: 56,
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
                   color: Colors.blue[50],
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: IconButton(
                   icon: const Icon(Icons.edit_rounded),
-                  iconSize: 32,
+                  iconSize: 24,
                   color: Colors.blue[700],
                   tooltip: 'แก้ไข',
                   onPressed: () => context.push(
