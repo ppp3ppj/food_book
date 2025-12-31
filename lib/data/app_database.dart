@@ -1,6 +1,7 @@
 import 'package:sqlite3/sqlite3.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+import 'package:flutter/foundation.dart';
 
 /// SQLite database manager using sqlite3 package directly
 class AppDatabase {
@@ -24,16 +25,18 @@ class AppDatabase {
       final dbFolder = await getApplicationDocumentsDirectory();
       _databasePath = p.join(dbFolder.path, 'food_book.db');
 
-      print('📂 Database path: $_databasePath');
+      debugPrint('📂 Database path: $_databasePath');
 
       _database = sqlite3.open(_databasePath!);
 
       // Create tables
       _createTables();
 
-      print('✅ Database connection opened successfully!');
+      debugPrint('✅ Database connection opened successfully!');
     } catch (e) {
-      print('❌ Database initialization failed: $e');
+      print(
+        '❌ Database initialization failed: $e',
+      ); // Keep in release - critical error
       rethrow;
     }
   }
@@ -73,12 +76,12 @@ class AppDatabase {
       _database!.execute(
         'CREATE INDEX IF NOT EXISTS idx_items_date ON items(date)',
       );
-      print('📊 Database index created for date column');
+      debugPrint('📊 Database index created for date column');
     } catch (e) {
-      print('⚠️ Index creation skipped: $e');
+      debugPrint('⚠️ Index creation skipped: $e');
     }
 
-    print('📋 Tables created successfully');
+    debugPrint('📋 Tables created successfully');
   }
 
   /// Test database connection
@@ -92,14 +95,16 @@ class AppDatabase {
       final result = _database!.select('SELECT 1 as test');
 
       if (result.isNotEmpty) {
-        print('✅ Database connection test successful!');
-        print('📊 Test query result: ${result.first['test']}');
+        debugPrint('✅ Database connection test successful!');
+        debugPrint('📊 Test query result: ${result.first['test']}');
         return true;
       }
 
       return false;
     } catch (e) {
-      print('❌ Database connection test failed: $e');
+      print(
+        '❌ Database connection test failed: $e',
+      ); // Keep in release - critical error
       return false;
     }
   }

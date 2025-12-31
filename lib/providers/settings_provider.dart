@@ -30,7 +30,7 @@ class SettingsNotifier extends Notifier<SettingsModel> {
         menuFooterNote: footerNote,
       );
     } catch (e) {
-      print('❌ Error loading settings: $e');
+      print('❌ Error loading settings: $e'); // Keep in release
     }
   }
 
@@ -41,7 +41,7 @@ class SettingsNotifier extends Notifier<SettingsModel> {
       await prefs.setString('menuHeaderText', text);
       state = state.copyWith(menuHeaderText: text);
     } catch (e) {
-      print('❌ Error saving header text: $e');
+      print('❌ Error saving header text: $e'); // Keep in release
     }
   }
 
@@ -52,7 +52,7 @@ class SettingsNotifier extends Notifier<SettingsModel> {
       await prefs.setString('menuFooterNote', note);
       state = state.copyWith(menuFooterNote: note);
     } catch (e) {
-      print('❌ Error saving footer note: $e');
+      print('❌ Error saving footer note: $e'); // Keep in release
     }
   }
 }
