@@ -253,29 +253,29 @@ class SettingsScreen extends HookConsumerWidget {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          '📅 31 ธ.ค. 2568',
+                          '31 ธ.ค. 2568',
                           style: TextStyle(
                             fontSize: 16,
                             color: Colors.grey[700],
                           ),
                         ),
-                        const Divider(height: 24),
+                        const SizedBox(height: 12),
                         const Text(
-                          '• ข้าวผัดกุ้ง - ฿60.00',
+                          '1. ข้าวผัดกุ้ง - ฿60.00',
                           style: TextStyle(fontSize: 16),
                         ),
                         const SizedBox(height: 4),
                         const Text(
-                          '• ต้มยำกุ้ง - ฿80.00',
+                          '2. ต้มยำกุ้ง - ฿80.00',
                           style: TextStyle(fontSize: 16),
                         ),
                         const SizedBox(height: 4),
                         const Text(
-                          '• ผัดไทย - ฿50.00',
+                          '3. ผัดไทย - ฿50.00',
                           style: TextStyle(fontSize: 16),
                         ),
                         if (footerController.text.isNotEmpty) ...[
-                          const Divider(height: 24),
+                          const SizedBox(height: 12),
                           Text(
                             footerController.text,
                             style: TextStyle(

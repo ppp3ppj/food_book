@@ -634,8 +634,8 @@ class ItemListScreen extends HookConsumerWidget {
 
     // Header
     buffer.writeln(headerText);
-    buffer.writeln('📅 ${_formatDate(date)}');
-    buffer.writeln('${'─' * 30}');
+    buffer.writeln(_formatDate(date));
+    buffer.writeln();
 
     // Items
     for (var i = 0; i < items.length; i++) {
@@ -647,7 +647,7 @@ class ItemListScreen extends HookConsumerWidget {
 
     // Footer
     if (footerNote.isNotEmpty) {
-      buffer.writeln('${'─' * 30}');
+      buffer.writeln();
       buffer.writeln(footerNote);
     }
 
