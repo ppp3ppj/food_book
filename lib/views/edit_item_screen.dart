@@ -1,94 +1,86 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../services/item_service.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../models/item_model.dart';
+import '../providers/item_provider.dart';
 
-class EditItemScreen extends StatefulWidget {
+/// Edit Item Screen - Refactored with HookConsumerWidget
+/// Performance optimized with hooks for form management
+/// No StatefulWidget needed - all state managed with hooks
+class EditItemScreen extends HookConsumerWidget {
   final ItemModel item;
 
   const EditItemScreen({super.key, required this.item});
 
   @override
-  State<EditItemScreen> createState() => _EditItemScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Form key with hooks
+    final formKey = useMemoized(() => GlobalKey<FormState>());
+    
+    // Text controllers with hooks (initialized with item data, auto-disposed)
+    final nameController = useTextEditingController(text: item.name);
+    final priceController = useTextEditingController(text: item.price.toString());
+    final amountController = useTextEditingController(text: item.amount.toString());
 
-class _EditItemScreenState extends State<EditItemScreen> {
-  final _formKey = GlobalKey<FormState>();
-  late TextEditingController _nameController;
-  late TextEditingController _priceController;
-  late TextEditingController _amountController;
+    // Update item callback
+    Future<void> updateItem() async {
+      if (!formKey.currentState!.validate()) {
+        return;
+      }
 
-  @override
-  void initState() {
-    super.initState();
-    _nameController = TextEditingController(text: widget.item.name);
-    _priceController = TextEditingController(text: widget.item.price.toString());
-    _amountController = TextEditingController(text: widget.item.amount.toString());
-  }
+      final name = nameController.text.trim();
+      final price = double.parse(priceController.text.trim());
+      final amount = int.tryParse(amountController.text.trim()) ?? 0;
 
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _priceController.dispose();
-    _amountController.dispose();
-    super.dispose();
-  }
+      final success = await ref.read(itemProvider.notifier).updateItem(
+            item.id!,
+            name,
+            price,
+            amount: amount,
+          );
 
-  Future<void> _updateItem() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    final name = _nameController.text.trim();
-    final price = double.parse(_priceController.text.trim());
-    final amount = int.tryParse(_amountController.text.trim()) ?? 0;
-
-    final itemService = context.read<ItemService>();
-    final success = await itemService.updateItem(widget.item.id!, name, price, amount: amount);
-
-    if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Item updated successfully')),
-      );
-      Navigator.pop(context);
-    }
-  }
-
-  Future<void> _deleteItem() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Item'),
-        content: Text('Are you sure you want to delete "${widget.item.name}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true && mounted) {
-      final itemService = context.read<ItemService>();
-      final success = await itemService.deleteItem(widget.item.id!);
-
-      if (success && mounted) {
+      if (success && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Item "${widget.item.name}" deleted')),
+          const SnackBar(content: Text('Item updated successfully')),
         );
-        Navigator.pop(context);
+        context.pop();
       }
     }
-  }
 
-  @override
-  Widget build(BuildContext context) {
+    // Delete item callback
+    Future<void> deleteItem() async {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Delete Item'),
+          content: Text('Are you sure you want to delete "${item.name}"?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Delete'),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed == true && context.mounted) {
+        final success = await ref.read(itemProvider.notifier).deleteItem(item.id!);
+
+        if (success && context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Item "${item.name}" deleted')),
+          );
+          context.pop();
+        }
+      }
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Item'),
@@ -97,18 +89,18 @@ class _EditItemScreenState extends State<EditItemScreen> {
           IconButton(
             icon: const Icon(Icons.delete),
             color: Colors.red,
-            onPressed: _deleteItem,
+            onPressed: deleteItem,
             tooltip: 'Delete Item',
           ),
         ],
       ),
       body: Form(
-        key: _formKey,
+        key: formKey,
         child: ListView(
           padding: const EdgeInsets.all(16.0),
           children: [
             TextFormField(
-              controller: _nameController,
+              controller: nameController,
               decoration: const InputDecoration(
                 labelText: 'Item Name',
                 border: OutlineInputBorder(),
@@ -123,7 +115,7 @@ class _EditItemScreenState extends State<EditItemScreen> {
             ),
             const SizedBox(height: 16),
             TextFormField(
-              controller: _priceController,
+              controller: priceController,
               decoration: const InputDecoration(
                 labelText: 'Price (฿)',
                 border: OutlineInputBorder(),
@@ -143,7 +135,7 @@ class _EditItemScreenState extends State<EditItemScreen> {
             ),
             const SizedBox(height: 16),
             TextFormField(
-              controller: _amountController,
+              controller: amountController,
               decoration: const InputDecoration(
                 labelText: 'Amount',
                 border: OutlineInputBorder(),
@@ -162,7 +154,7 @@ class _EditItemScreenState extends State<EditItemScreen> {
             ),
             const SizedBox(height: 32),
             ElevatedButton.icon(
-              onPressed: _updateItem,
+              onPressed: updateItem,
               icon: const Icon(Icons.save),
               label: const Text('Update Item'),
               style: ElevatedButton.styleFrom(

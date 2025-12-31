@@ -1,43 +1,39 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../services/item_service.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../models/item_model.dart';
-import 'add_item_screen.dart';
-import 'edit_item_screen.dart';
+import '../providers/item_provider.dart';
+import '../router/app_router.dart';
 
-class ItemListScreen extends StatefulWidget {
+/// Item List Screen - Refactored with HookConsumerWidget for optimal performance
+/// No StatefulWidget - Uses hooks for local state management
+/// Declarative navigation with go_router
+class ItemListScreen extends HookConsumerWidget {
   const ItemListScreen({super.key});
 
   @override
-  State<ItemListScreen> createState() => _ItemListScreenState();
-}
-
-class _ItemListScreenState extends State<ItemListScreen> {
-  final _searchController = TextEditingController();
-  String _searchQuery = '';
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  void _navigateToAddItem() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const AddItemScreen()),
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Local state management with hooks (no setState needed)
+    final searchController = useTextEditingController();
+    final searchQuery = useState('');
+    
+    // Watch item state from Riverpod provider
+    final itemState = ref.watch(itemProvider);
+    
+    // Computed filtered items
+    final filteredItems = useMemoized(
+      () {
+        if (searchQuery.value.isEmpty) return itemState.items;
+        
+        final lowerQuery = searchQuery.value.toLowerCase();
+        return itemState.items.where((item) {
+          return item.name.toLowerCase().contains(lowerQuery);
+        }).toList();
+      },
+      [itemState.items, searchQuery.value],
     );
-  }
 
-  void _navigateToEditItem(ItemModel item) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => EditItemScreen(item: item)),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Menu Items'),
@@ -45,7 +41,7 @@ class _ItemListScreenState extends State<ItemListScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () => context.read<ItemService>().loadItems(),
+            onPressed: () => ref.read(itemProvider.notifier).loadItems(),
           ),
         ],
       ),
@@ -55,130 +51,152 @@ class _ItemListScreenState extends State<ItemListScreen> {
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: TextField(
-              controller: _searchController,
+              controller: searchController,
               decoration: InputDecoration(
                 labelText: 'Search items',
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
-                suffixIcon: _searchQuery.isNotEmpty
+                suffixIcon: searchQuery.value.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.clear),
                         onPressed: () {
-                          setState(() {
-                            _searchController.clear();
-                            _searchQuery = '';
-                          });
+                          searchController.clear();
+                          searchQuery.value = '';
                         },
                       )
                     : null,
               ),
               onChanged: (value) {
-                setState(() {
-                  _searchQuery = value;
-                });
+                searchQuery.value = value;
               },
             ),
           ),
           // Items list
           Expanded(
-            child: Consumer<ItemService>(
-              builder: (context, itemService, child) {
-                if (itemService.isLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                if (itemService.error != null) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.error, size: 64, color: Colors.red),
-                        const SizedBox(height: 16),
-                        Text('Error: ${itemService.error}'),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: () => itemService.loadItems(),
-                          child: const Text('Retry'),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                final items = _searchQuery.isEmpty
-                    ? itemService.items
-                    : itemService.searchItems(_searchQuery);
-
-                if (items.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.restaurant_menu, size: 64, color: Colors.grey[400]),
-                        const SizedBox(height: 16),
-                        Text(
-                          _searchQuery.isEmpty
-                              ? 'No items yet. Add your first item!'
-                              : 'No items found for "$_searchQuery"',
-                          style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                return ListView.builder(
-                  itemCount: items.length,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemBuilder: (context, index) {
-                    final item = items[index];
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: Theme.of(context).colorScheme.primary,
-                          child: Text(
-                            item.name[0].toUpperCase(),
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                        ),
-                        title: Text(
-                          item.name,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Price: ฿${item.price.toStringAsFixed(2)}'),
-                            if (item.amount > 0) Text('Amount: ${item.amount}'),
-                          ],
-                        ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.edit),
-                              color: Colors.blue,
-                              onPressed: () => _navigateToEditItem(item),
-                            ),
-                          ],
-                        ),
-                        onTap: () => _navigateToEditItem(item),
-                      ),
-                    );
-                  },
-                );
-              },
+            child: _buildItemList(
+              context,
+              ref,
+              itemState,
+              filteredItems,
+              searchQuery.value,
             ),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: _navigateToAddItem,
+        onPressed: () => context.push(AppRoutes.addItem),
         icon: const Icon(Icons.add),
         label: const Text('Add Item'),
+      ),
+    );
+  }
+
+  /// Build item list based on state
+  /// Separated for better code organization and readability
+  Widget _buildItemList(
+    BuildContext context,
+    WidgetRef ref,
+    ItemState itemState,
+    List<ItemModel> filteredItems,
+    String searchQuery,
+  ) {
+    // Loading state
+    if (itemState.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    // Error state
+    if (itemState.error != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error, size: 64, color: Colors.red),
+            const SizedBox(height: 16),
+            Text('Error: ${itemState.error}'),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => ref.read(itemProvider.notifier).loadItems(),
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Empty state
+    if (filteredItems.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.restaurant_menu, size: 64, color: Colors.grey[400]),
+            const SizedBox(height: 16),
+            Text(
+              searchQuery.isEmpty
+                  ? 'No items yet. Add your first item!'
+                  : 'No items found for "$searchQuery"',
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Items list
+    return ListView.builder(
+      itemCount: filteredItems.length,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemBuilder: (context, index) {
+        final item = filteredItems[index];
+        return _buildItemCard(context, item);
+      },
+    );
+  }
+
+  /// Build individual item card
+  /// Separated for reusability and cleaner code
+  Widget _buildItemCard(BuildContext context, ItemModel item) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          child: Text(
+            item.name[0].toUpperCase(),
+            style: const TextStyle(color: Colors.white),
+          ),
+        ),
+        title: Text(
+          item.name,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Price: ฿${item.price.toStringAsFixed(2)}'),
+            if (item.amount > 0) Text('Amount: ${item.amount}'),
+          ],
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.edit),
+              color: Colors.blue,
+              onPressed: () => context.push(
+                AppRoutes.editItem,
+                extra: item,
+              ),
+            ),
+          ],
+        ),
+        onTap: () => context.push(
+          AppRoutes.editItem,
+          extra: item,
+        ),
       ),
     );
   }

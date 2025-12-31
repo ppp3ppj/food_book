@@ -37,13 +37,31 @@ dependencies:
 
   path: ^1.9.1
   path_provider: ^2.1.5
-  provider: ^6.1.5
   sqlite3: ^3.1.1
   uuid: ^4.5.2
 
   # Routing
   go_router: ^17.0.1
 
+  #state management
+  flutter_riverpod: ^3.1.0
+  riverpod_annotation: ^4.0.0
+
+  #hooks
+  flutter_hooks: ^0.21.3+1
+  hooks_riverpod: ^3.1.0
+
+  #network
+  dio: ^5.9.0
+  
+  #Local storage
+  shared_preferences: ^2.5.4
+  flutter_secure_storage: ^10.0.0
+
+  #serialization
+  #json_annotation: ^4.9.0
+  freezed_annotation: ^3.1.0
+  equatable: ^2.0.7
 
 dev_dependencies:
   flutter_test:
@@ -55,6 +73,11 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+
+  #riverpod generator
+  riverpod_generator: ^4.0.0+1
+
+  build_runner: ^2.10.4
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
