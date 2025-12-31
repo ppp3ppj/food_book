@@ -17,9 +17,6 @@ class ItemListScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Local state management with hooks
-    final searchController = useTextEditingController();
-    final searchFocusNode = useFocusNode();
-    final searchQuery = useState('');
     final selectedDate = useState(DateTime.now());
 
     // Watch item state from Riverpod provider
@@ -34,16 +31,6 @@ class ItemListScreen extends HookConsumerWidget {
       );
       return null;
     }, [selectedDate.value]);
-
-    // Computed filtered items
-    final filteredItems = useMemoized(() {
-      if (searchQuery.value.isEmpty) return itemState.items;
-
-      final lowerQuery = searchQuery.value.toLowerCase();
-      return itemState.items.where((item) {
-        return item.name.toLowerCase().contains(lowerQuery);
-      }).toList();
-    }, [itemState.items, searchQuery.value]);
 
     return Scaffold(
       appBar: AppBar(
@@ -87,207 +74,145 @@ class ItemListScreen extends HookConsumerWidget {
           ),
         ],
       ),
-      body: GestureDetector(
-        onTap: () {
-          searchFocusNode.unfocus();
-        },
-        child: Column(
-          children: [
-            // Search bar
-            Container(
-              padding: const EdgeInsets.all(12.0),
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
-              child: TextField(
-                controller: searchController,
-                focusNode: searchFocusNode,
-                autofocus: false,
-                style: const TextStyle(fontSize: 18),
-                decoration: InputDecoration(
-                  hintText: 'ค้นหารายการอาหาร...',
-                  hintStyle: TextStyle(fontSize: 18, color: Colors.grey[400]),
-                  prefixIcon: const Icon(Icons.search, size: 28),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide(color: Colors.grey[300]!, width: 2),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide(color: Colors.grey[300]!, width: 2),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide(
-                      color: Theme.of(context).colorScheme.primary,
-                      width: 3,
-                    ),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                  suffixIcon: searchQuery.value.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(Icons.clear, size: 24),
-                          iconSize: 24,
-                          onPressed: () {
-                            searchController.clear();
-                            searchQuery.value = '';
-                            searchFocusNode.unfocus();
-                          },
-                        )
-                      : null,
+      body: Column(
+        children: [
+          // Date Navigation Bar
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.1),
+                  spreadRadius: 1,
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
                 ),
-                onChanged: (value) {
-                  searchQuery.value = value;
-                },
-              ),
+              ],
             ),
-            // Date Navigation Bar
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
-                    spreadRadius: 1,
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
+            child: Row(
+              children: [
+                // Previous Day Button
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  // Previous Day Button
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: IconButton(
-                      icon: const Icon(Icons.chevron_left_rounded, size: 32),
-                      color: Theme.of(context).colorScheme.primary,
-                      onPressed: () {
-                        selectedDate.value = selectedDate.value.subtract(
-                          const Duration(days: 1),
-                        );
-                      },
-                      tooltip: 'วันก่อนหน้า',
-                    ),
+                  child: IconButton(
+                    icon: const Icon(Icons.chevron_left_rounded, size: 32),
+                    color: Theme.of(context).colorScheme.primary,
+                    onPressed: () {
+                      selectedDate.value = selectedDate.value.subtract(
+                        const Duration(days: 1),
+                      );
+                    },
+                    tooltip: 'วันก่อนหน้า',
                   ),
-                  // Date Display & Picker
-                  Expanded(
-                    child: InkWell(
-                      onTap: () async {
-                        final pickedDate = await showDatePicker(
-                          context: context,
-                          initialDate: selectedDate.value,
-                          firstDate: DateTime(2020),
-                          lastDate: DateTime(2100),
-                          builder: (context, child) {
-                            return Theme(
-                              data: Theme.of(context).copyWith(
-                                textTheme: Theme.of(context).textTheme.copyWith(
-                                  headlineMedium: const TextStyle(fontSize: 28),
-                                  titleLarge: const TextStyle(fontSize: 22),
-                                  labelLarge: const TextStyle(fontSize: 18),
-                                ),
+                ),
+                // Date Display & Picker
+                Expanded(
+                  child: InkWell(
+                    onTap: () async {
+                      final pickedDate = await showDatePicker(
+                        context: context,
+                        initialDate: selectedDate.value,
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime(2100),
+                        builder: (context, child) {
+                          return Theme(
+                            data: Theme.of(context).copyWith(
+                              textTheme: Theme.of(context).textTheme.copyWith(
+                                headlineMedium: const TextStyle(fontSize: 28),
+                                titleLarge: const TextStyle(fontSize: 22),
+                                labelLarge: const TextStyle(fontSize: 18),
                               ),
-                              child: child!,
-                            );
-                          },
-                        );
-                        if (pickedDate != null) {
-                          selectedDate.value = pickedDate;
-                        }
-                      },
-                      borderRadius: BorderRadius.circular(16),
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 12),
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 12,
-                          horizontal: 16,
-                        ),
-                        decoration: BoxDecoration(
+                            ),
+                            child: child!,
+                          );
+                        },
+                      );
+                      if (pickedDate != null) {
+                        selectedDate.value = pickedDate;
+                      }
+                    },
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 12),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 12,
+                        horizontal: 16,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.primary.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
                           color: Theme.of(
                             context,
-                          ).colorScheme.primary.withOpacity(0.05),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.primary.withOpacity(0.3),
-                            width: 2,
+                          ).colorScheme.primary.withOpacity(0.3),
+                          width: 2,
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            _formatDate(selectedDate.value),
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            textAlign: TextAlign.center,
                           ),
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              _formatDate(selectedDate.value),
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                              textAlign: TextAlign.center,
+                          const SizedBox(height: 2),
+                          Text(
+                            _formatDayName(selectedDate.value),
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
                             ),
-                            const SizedBox(height: 2),
-                            Text(
-                              _formatDayName(selectedDate.value),
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey[600],
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                  // Next Day Button
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: IconButton(
-                      icon: const Icon(Icons.chevron_right_rounded, size: 32),
-                      color: Theme.of(context).colorScheme.primary,
-                      onPressed: () {
-                        selectedDate.value = selectedDate.value.add(
-                          const Duration(days: 1),
-                        );
-                      },
-                      tooltip: 'วันถัดไป',
-                    ),
+                ),
+                // Next Day Button
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                ],
-              ),
+                  child: IconButton(
+                    icon: const Icon(Icons.chevron_right_rounded, size: 32),
+                    color: Theme.of(context).colorScheme.primary,
+                    onPressed: () {
+                      selectedDate.value = selectedDate.value.add(
+                        const Duration(days: 1),
+                      );
+                    },
+                    tooltip: 'วันถัดไป',
+                  ),
+                ),
+              ],
             ),
-            // Items list
-            Expanded(
-              child: _buildItemList(
-                context,
-                ref,
-                itemState,
-                filteredItems,
-                searchQuery.value,
-              ),
-            ),
-          ],
-        ),
+          ),
+          // Items list
+          Expanded(
+            child: _buildItemList(context, ref, itemState, itemState.items),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
@@ -312,8 +237,7 @@ class ItemListScreen extends HookConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     ItemState itemState,
-    List<ItemModel> filteredItems,
-    String searchQuery,
+    List<ItemModel> items,
   ) {
     // Loading state - Show skeleton loader
     if (itemState.isLoading) {
@@ -369,21 +293,17 @@ class ItemListScreen extends HookConsumerWidget {
     }
 
     // Empty state
-    if (filteredItems.isEmpty) {
+    if (items.isEmpty) {
       return SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(32.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                searchQuery.isEmpty ? Icons.inbox_outlined : Icons.search_off,
-                size: 80,
-                color: Colors.grey[400],
-              ),
+              Icon(Icons.inbox_outlined, size: 80, color: Colors.grey[400]),
               const SizedBox(height: 20),
               Text(
-                searchQuery.isEmpty ? 'ยังไม่มีรายการ' : 'ไม่พบรายการ',
+                'ยังไม่มีรายการ',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -392,9 +312,7 @@ class ItemListScreen extends HookConsumerWidget {
               ),
               const SizedBox(height: 10),
               Text(
-                searchQuery.isEmpty
-                    ? 'เริ่มต้นโดยการเพิ่มรายการใหม่'
-                    : 'ลองค้นหาด้วยคำอื่น',
+                'เริ่มต้นโดยการเพิ่มรายการใหม่',
                 style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                 textAlign: TextAlign.center,
               ),
@@ -406,10 +324,10 @@ class ItemListScreen extends HookConsumerWidget {
 
     // Items list - Optimized with RepaintBoundary for better performance
     return ListView.builder(
-      itemCount: filteredItems.length,
+      itemCount: items.length,
       padding: const EdgeInsets.all(12),
       itemBuilder: (context, index) {
-        final item = filteredItems[index];
+        final item = items[index];
         // RepaintBoundary prevents unnecessary repaints of individual items
         return RepaintBoundary(child: _buildItemCard(context, item));
       },
