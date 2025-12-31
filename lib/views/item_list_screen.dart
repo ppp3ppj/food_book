@@ -350,7 +350,7 @@ class ItemListScreen extends HookConsumerWidget {
 
     // Empty state
     if (filteredItems.isEmpty) {
-      return Center(
+      return SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(32.0),
           child: Column(
@@ -358,26 +358,26 @@ class ItemListScreen extends HookConsumerWidget {
             children: [
               Icon(
                 searchQuery.isEmpty ? Icons.inbox_outlined : Icons.search_off,
-                size: 96,
+                size: 80,
                 color: Colors.grey[400],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
               Text(
                 searchQuery.isEmpty 
                     ? 'ยังไม่มีรายการ' 
                     : 'ไม่พบรายการ',
                 style: TextStyle(
-                  fontSize: 24,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: Colors.grey[700],
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               Text(
                 searchQuery.isEmpty 
                     ? 'เริ่มต้นโดยการเพิ่มรายการใหม่' 
                     : 'ลองค้นหาด้วยคำอื่น',
-                style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                 textAlign: TextAlign.center,
               ),
             ],
