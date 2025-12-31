@@ -374,44 +374,10 @@ flutter pub run flutter_native_splash:create
 ## Agent Task Documentation Requirements
 
 ### Task Completion Protocol
-- **Mandatory Documentation:** Every completed task MUST be documented in the `agent_tasks/` directory
-- **File Naming Convention:** Use descriptive names like `task_name_success.md` or `feature_implementation_YYYY-MM-DD.md`
-- **Comprehensive Records:** Include implementation details, code changes, verification steps, and outcomes
-- **Success Tracking:** Document what was accomplished, files modified, and business value delivered
-- **Future Reference:** Provide maintenance guidance and lessons learned for future developers
-
-### Documentation Template Structure
-```markdown
-# 🎯 Agent Task: [Task Name] - [STATUS] ✅/❌
-
-**Date:** [Date]
-**Task:** [Brief description]
-**Status:** ✅ COMPLETED SUCCESSFULLY / ❌ FAILED
-**Agent:** GitHub Copilot
-
-## 📋 Task Summary
-- **Objective:** [What was requested]
-- **Requirements:** [Technical/business requirements]
-- **Implementation:** [What was done]
-
-## ✅ Verification & Results
-- **Testing:** [How it was verified]
-- **Performance Impact:** [Any performance considerations]
-- **Success Metrics:** [Measurable outcomes]
-
-## 📚 Documentation & Future Maintenance
-- **Files Created/Updated:** [Documentation files]
-- **Next Steps:** [Recommendations for future work]
-- **Lessons Learned:** [Key insights and best practices]
-```
-
-### Task Categories for Organization
-- **Performance Optimizations** - Database, UI, memory improvements
-- **Feature Implementations** - New functionality additions
-- **Bug Fixes** - Issue resolution and debugging
-- **Architecture Changes** - MVVM, Riverpod pattern improvements  
-- **UI/UX Enhancements** - Design system, typography, accessibility
-- **Documentation Updates** - Guide improvements and maintenance
+- **DO NOT auto-generate documentation files** - Do not create markdown files in `agent_tasks/` directory unless explicitly requested by the user
+- **Provide verbal summary only** - Summarize changes in the chat response
+- **Update existing docs when needed** - Only update AGENTS.md or README.md if specifically asked
+- **Code is documentation** - Write self-documenting code with clear comments and structure
 
 ## Security & Privacy
 
@@ -473,14 +439,11 @@ flutter pub run flutter_native_splash:create
 - [ ] Code analysis passes without warnings
 - [ ] Consistent naming conventions throughout codebase
 
-### Agent Task Documentation
-- [ ] **Task completion documented in `agent_tasks/` directory**
-- [ ] **Implementation details and code changes recorded**
-- [ ] **Verification steps and success metrics included**
-- [ ] **Files modified and dependencies listed**
-- [ ] **Business value and performance impact documented**
-- [ ] **Future maintenance guidance provided**
-- [ ] **Lessons learned and best practices captured**
+### Communication
+- [ ] Changes summarized clearly in chat response
+- [ ] Key files modified are listed
+- [ ] Any breaking changes or migration steps noted
+- [ ] Performance impact communicated if significant
 
 ### Performance
 - [ ] Lazy loading for large data sets
