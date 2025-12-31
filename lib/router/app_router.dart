@@ -5,6 +5,7 @@ import '../views/item_list_screen.dart';
 import '../views/add_item_screen.dart';
 import '../views/edit_item_screen.dart';
 import '../views/settings_screen.dart';
+import '../views/menu_analysis_screen.dart';
 import '../models/item_model.dart';
 
 /// Route paths as constants for type safety and easy refactoring
@@ -13,6 +14,7 @@ class AppRoutes {
   static const String addItem = '/add-item';
   static const String editItem = '/edit-item';
   static const String settings = '/settings';
+  static const String menuAnalysis = '/menu-analysis';
 }
 
 /// GoRouter configuration provider
@@ -61,6 +63,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         name: 'settings',
         pageBuilder: (context, state) =>
             const MaterialPage(child: SettingsScreen()),
+      ),
+
+      // Menu Analysis route
+      GoRoute(
+        path: AppRoutes.menuAnalysis,
+        name: 'menu-analysis',
+        pageBuilder: (context, state) =>
+            const MaterialPage(child: MenuAnalysisScreen()),
       ),
     ],
 

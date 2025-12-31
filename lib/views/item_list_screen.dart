@@ -47,6 +47,15 @@ class ItemListScreen extends HookConsumerWidget {
           Padding(
             padding: const EdgeInsets.only(right: 4.0),
             child: IconButton(
+              icon: const Icon(Icons.analytics, size: 28),
+              tooltip: 'วิเคราะห์เมนู',
+              iconSize: 28,
+              onPressed: () => context.push(AppRoutes.menuAnalysis),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 4.0),
+            child: IconButton(
               icon: const Icon(Icons.share, size: 28),
               tooltip: 'แชร์เมนู',
               iconSize: 28,
