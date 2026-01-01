@@ -1,7 +1,7 @@
 import 'package:sqlite3/sqlite3.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
-import 'dart:io';
+import 'package:flutter/foundation.dart';
 
 /// SQLite database manager using sqlite3 package directly
 class AppDatabase {
@@ -24,16 +24,64 @@ class AppDatabase {
     try {
       final dbFolder = await getApplicationDocumentsDirectory();
       _databasePath = p.join(dbFolder.path, 'food_book.db');
-      
-      print('📂 Database path: $_databasePath');
-      
+
+      debugPrint('📂 Database path: $_databasePath');
+
       _database = sqlite3.open(_databasePath!);
-      
-      print('✅ Database connection opened successfully!');
+
+      // Create tables
+      _createTables();
+
+      debugPrint('✅ Database connection opened successfully!');
     } catch (e) {
-      print('❌ Database initialization failed: $e');
+      print(
+        '❌ Database initialization failed: $e',
+      ); // Keep in release - critical error
       rethrow;
     }
+  }
+
+  /// Create database tables
+  void _createTables() {
+    _database!.execute('''
+      CREATE TABLE IF NOT EXISTS items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        price REAL NOT NULL DEFAULT 0.0,
+        date TEXT NOT NULL,
+        reason TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT
+      )
+    ''');
+
+    // Add date column if it doesn't exist (for existing databases)
+    try {
+      _database!.execute(
+        'ALTER TABLE items ADD COLUMN date TEXT NOT NULL DEFAULT "2025-01-01"',
+      );
+    } catch (e) {
+      // Column already exists, ignore error
+    }
+
+    // Add reason column if it doesn't exist (for existing databases)
+    try {
+      _database!.execute('ALTER TABLE items ADD COLUMN reason TEXT');
+    } catch (e) {
+      // Column already exists, ignore error
+    }
+
+    // Create index on date column for faster queries
+    try {
+      _database!.execute(
+        'CREATE INDEX IF NOT EXISTS idx_items_date ON items(date)',
+      );
+      debugPrint('📊 Database index created for date column');
+    } catch (e) {
+      debugPrint('⚠️ Index creation skipped: $e');
+    }
+
+    debugPrint('📋 Tables created successfully');
   }
 
   /// Test database connection
@@ -42,19 +90,21 @@ class AppDatabase {
       if (_database == null) {
         await initialize();
       }
-      
+
       // Execute a simple query to test connection
       final result = _database!.select('SELECT 1 as test');
-      
+
       if (result.isNotEmpty) {
-        print('✅ Database connection test successful!');
-        print('📊 Test query result: ${result.first['test']}');
+        debugPrint('✅ Database connection test successful!');
+        debugPrint('📊 Test query result: ${result.first['test']}');
         return true;
       }
-      
+
       return false;
     } catch (e) {
-      print('❌ Database connection test failed: $e');
+      print(
+        '❌ Database connection test failed: $e',
+      ); // Keep in release - critical error
       return false;
     }
   }

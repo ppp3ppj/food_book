@@ -9,19 +9,19 @@ This file provides comprehensive guidance for AI agents and developers working o
 **Platform:** Flutter (Android)  
 **Purpose:** Modern Food ordering and management system for retail businesses and restaurants to efficiently manage sales, inventory, customer data, and business operations with a beautiful Material 3 UI
 
-**Architecture:** MVVM (Model-View-ViewModel) with Provider pattern for state management  
-**Database:** Drift ORM with SQLite for local-first data persistence  
+**Architecture:** MVVM (Model-View-ViewModel) with Riverpod for state management  
+**Database:** SQLite with direct sqlite3 package for local-first data persistence  
 **Design System:** Material 3 with semantic color tokens and responsive design
 
 ## Architecture & Design Principles
 
-### MVVM + Provider Architecture
-- **Model:** Data models and business entities (`lib/data/tables/*.dart`)
+### MVVM + Riverpod Architecture
+- **Model:** Data models and business entities (`lib/models/*.dart`)
 - **View:** UI screens and widgets (`lib/views/`, `lib/widgets/`)
-- **ViewModel:** Services and providers for business logic (`lib/services/`, `lib/viewmodels/`)
-- **Provider Pattern:** State management with `ChangeNotifier` and `Consumer`
-- **Dependency Injection:** Use `MultiProvider` for service registration
-- **Reactive UI:** UI automatically updates when data changes via `Consumer<T>`
+- **ViewModel:** Services and providers for business logic (`lib/services/`)
+- **Riverpod Pattern:** State management with `StateNotifier` and `ConsumerWidget`
+- **Dependency Injection:** Use `ProviderScope` and providers for service registration
+- **Reactive UI:** UI automatically updates when data changes via `ref.watch()`
 
 ### Material 3 Design System
 - **Always use Material 3** design tokens and components (`useMaterial3: true`)
@@ -60,7 +60,7 @@ This file provides comprehensive guidance for AI agents and developers working o
 ```
 food_book/
 ├─ lib/
-│  ├─ main.dart                 # App entry point with MultiProvider setup
+│  ├─ main.dart                 # App entry point with ProviderScope setup
 │  ├─ app.dart                  # App widget, routing, theme configuration
 │  ├─ data/                     # Data layer with Drift ORM
 │  │  ├─ app_database.dart      # Main database configuration
@@ -89,49 +89,63 @@ food_book/
 #### 1. Services (ViewModels)
 ```dart
 /// Example from lib/services/item_service.dart
-class ItemService extends ChangeNotifier {
+class ItemState {
+  final List<ItemModel> items;
+  final bool isLoading;
+  final String? error;
+
+  ItemState({
+    this.items = const [],
+    this.isLoading = false,
+    this.error,
+  });
+
+  bool get hasItems => items.isNotEmpty;
+
+  ItemState copyWith({
+    List<ItemModel>? items,
+    bool? isLoading,
+    String? error,
+  }) {
+    return ItemState(
+      items: items ?? this.items,
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+    );
+  }
+}
+
+class ItemService extends StateNotifier<ItemState> {
   final AppDatabase _database;
   
-  List<Item> _items = [];
-  bool _isLoading = false;
-  String? _error;
-  
-  ItemService(this._database) {
+  ItemService(this._database) : super(ItemState()) {
     loadItems();
   }
   
-  // Getters for UI consumption
-  List<Item> get items => List.unmodifiable(_items);
-  bool get isLoading => _isLoading;
-  String? get error => _error;
-  bool get hasItems => _items.isNotEmpty;
-  
   // Business operations
   Future<void> loadItems() async {
-    _setLoading(true);
-    _setError(null);
+    state = state.copyWith(isLoading: true, error: null);
     
     try {
-      _items = await _database.itemDao.getAllItems();
-      debugPrint('📋 Loaded ${_items.length} items');
+      final items = await _database.query('SELECT * FROM items');
+      final itemList = items.map((row) => ItemModel.fromMap(row)).toList();
+      state = state.copyWith(items: itemList, isLoading: false);
+      debugPrint('📋 Loaded ${itemList.length} items');
     } catch (e) {
-      _setError('Failed to load items: ${e.toString()}');
+      state = state.copyWith(
+        error: 'Failed to load items: ${e.toString()}',
+        isLoading: false,
+      );
       debugPrint('❌ Error loading items: $e');
-    } finally {
-      _setLoading(false);
     }
   }
-  
-  void _setLoading(bool loading) {
-    _isLoading = loading;
-    notifyListeners();
-  }
-  
-  void _setError(String? error) {
-    _error = error;
-    notifyListeners();
-  }
 }
+
+// Provider definition
+final itemServiceProvider = StateNotifierProvider<ItemService, ItemState>((ref) {
+  final database = ref.watch(databaseProvider);
+  return ItemService(database);
+});
 ```
 
 #### 2. Data Access Objects (DAOs)
@@ -168,61 +182,47 @@ class ItemDao extends DatabaseAccessor<AppDatabase> with _$ItemDaoMixin {
 }
 ```
 
-#### 3. UI Integration with Consumer
+#### 3. UI Integration with ConsumerWidget
 ```dart
 /// Example from lib/views/order/order_screen.dart
-class PosScreen extends StatefulWidget {
+class PosScreen extends ConsumerStatefulWidget {
   const PosScreen({super.key});
 
   @override
-  State<PosScreen> createState() => _PosScreenState();
+  ConsumerState<PosScreen> createState() => _PosScreenState();
 }
 
-class _PosScreenState extends State<PosScreen> {
+class _PosScreenState extends ConsumerState<PosScreen> {
   final List<CartItemModel> _cartItems = [];
-  late AppDatabase _database;
-  
-  List<Category> _categories = [];
-  List<Item> _items = [];
-  List<Item> _filteredItems = [];
   int? _selectedCategoryId;
-  bool _isLoading = true;
 
   @override
   Widget build(BuildContext context) {
+    final itemState = ref.watch(itemServiceProvider);
+    
     return Scaffold(
-      body: Consumer<ItemService>(
-        builder: (context, itemService, child) {
-          if (itemService.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-          
-          if (itemService.error != null) {
-            return Center(
+      body: itemState.isLoading
+        ? const Center(child: CircularProgressIndicator())
+        : itemState.error != null
+          ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.error, size: 64, color: Colors.red),
                   SizedBox(height: 16),
-                  Text('Error: ${itemService.error}'),
+                  Text('Error: ${itemState.error}'),
                   ElevatedButton(
-                    onPressed: () => itemService.loadItems(),
+                    onPressed: () => ref.read(itemServiceProvider.notifier).loadItems(),
                     child: Text('Retry'),
                   ),
                 ],
               ),
-            );
-          }
-          
-          return _buildMenuGrid(itemService.items);
-        },
-      ),
+            )
+          : _buildMenuGrid(itemState.items),
     );
   }
 
-  Widget _buildMenuGrid(List<Item> items) {
+  Widget _buildMenuGrid(List<ItemModel> items) {
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -300,13 +300,17 @@ class ItemServiceTest {
 class PosScreenTest {
   testWidgets('should display items when loaded', (tester) async {
     // Given
-    final mockService = MockItemService();
+    final container = ProviderContainer(
+      overrides: [
+        itemServiceProvider.overrideWith((ref) => MockItemService()),
+      ],
+    );
     
     // When
     await tester.pumpWidget(
-      ChangeNotifierProvider<ItemService>.value(
-        value: mockService,
-        child: PosScreen(),
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(home: PosScreen()),
       ),
     );
     
@@ -370,44 +374,10 @@ flutter pub run flutter_native_splash:create
 ## Agent Task Documentation Requirements
 
 ### Task Completion Protocol
-- **Mandatory Documentation:** Every completed task MUST be documented in the `agent_tasks/` directory
-- **File Naming Convention:** Use descriptive names like `task_name_success.md` or `feature_implementation_YYYY-MM-DD.md`
-- **Comprehensive Records:** Include implementation details, code changes, verification steps, and outcomes
-- **Success Tracking:** Document what was accomplished, files modified, and business value delivered
-- **Future Reference:** Provide maintenance guidance and lessons learned for future developers
-
-### Documentation Template Structure
-```markdown
-# 🎯 Agent Task: [Task Name] - [STATUS] ✅/❌
-
-**Date:** [Date]
-**Task:** [Brief description]
-**Status:** ✅ COMPLETED SUCCESSFULLY / ❌ FAILED
-**Agent:** GitHub Copilot
-
-## 📋 Task Summary
-- **Objective:** [What was requested]
-- **Requirements:** [Technical/business requirements]
-- **Implementation:** [What was done]
-
-## ✅ Verification & Results
-- **Testing:** [How it was verified]
-- **Performance Impact:** [Any performance considerations]
-- **Success Metrics:** [Measurable outcomes]
-
-## 📚 Documentation & Future Maintenance
-- **Files Created/Updated:** [Documentation files]
-- **Next Steps:** [Recommendations for future work]
-- **Lessons Learned:** [Key insights and best practices]
-```
-
-### Task Categories for Organization
-- **Performance Optimizations** - Database, UI, memory improvements
-- **Feature Implementations** - New functionality additions
-- **Bug Fixes** - Issue resolution and debugging
-- **Architecture Changes** - MVVM, Provider pattern improvements  
-- **UI/UX Enhancements** - Design system, typography, accessibility
-- **Documentation Updates** - Guide improvements and maintenance
+- **DO NOT auto-generate documentation files** - Do not create markdown files in `agent_tasks/` directory unless explicitly requested by the user
+- **Provide verbal summary only** - Summarize changes in the chat response
+- **Update existing docs when needed** - Only update AGENTS.md or README.md if specifically asked
+- **Code is documentation** - Write self-documenting code with clear comments and structure
 
 ## Security & Privacy
 
@@ -430,7 +400,7 @@ flutter pub run flutter_native_splash:create
 ## Common Pitfalls & Solutions
 
 ### Flutter Specific
-- **Hot reload limitations:** Restart app after theme/provider changes
+- **Hot reload limitations:** Restart app after theme/Riverpod provider changes
 - **Asset loading:** Always provide errorBuilder for images
 - **State management:** Avoid calling Provider in initState
 - **Screen overflow:** Use Expanded, Flexible for responsive layouts
@@ -440,11 +410,11 @@ flutter pub run flutter_native_splash:create
 - **Components:** Prefer Material 3 components over custom implementations
 - **Theming:** Apply theme consistently across all screens
 
-### Provider Pattern Issues
-- **Build context access:** Never call `Provider.of` in `initState`, use `didChangeDependencies`
-- **Memory leaks:** Always dispose controllers and streams in ViewModels
-- **Unnecessary rebuilds:** Use `Consumer` with specific types, avoid broad selectors
-- **Async operations:** Handle loading states properly, don't forget error handling
+### Riverpod Best Practices
+- **Provider access:** Use `ref.watch()` in build, `ref.read()` for callbacks/events
+- **Memory management:** Riverpod auto-disposes providers, but dispose controllers in StateNotifier
+- **Unnecessary rebuilds:** Use `select()` to watch specific properties, avoid watching entire state
+- **Async operations:** Use `AsyncValue` for loading/error/data states with proper handling
 
 ### Database Best Practices
 - **Migration safety:** Always test database migrations with existing data
@@ -469,14 +439,11 @@ flutter pub run flutter_native_splash:create
 - [ ] Code analysis passes without warnings
 - [ ] Consistent naming conventions throughout codebase
 
-### Agent Task Documentation
-- [ ] **Task completion documented in `agent_tasks/` directory**
-- [ ] **Implementation details and code changes recorded**
-- [ ] **Verification steps and success metrics included**
-- [ ] **Files modified and dependencies listed**
-- [ ] **Business value and performance impact documented**
-- [ ] **Future maintenance guidance provided**
-- [ ] **Lessons learned and best practices captured**
+### Communication
+- [ ] Changes summarized clearly in chat response
+- [ ] Key files modified are listed
+- [ ] Any breaking changes or migration steps noted
+- [ ] Performance impact communicated if significant
 
 ### Performance
 - [ ] Lazy loading for large data sets
@@ -579,7 +546,7 @@ dart pub outdated
 ## Documentation Links
 
 **Architecture Patterns:** 
-- [Provider Pattern Guide](https://pub.dev/packages/provider)
+- [Riverpod Documentation](https://riverpod.dev/)
 - [MVVM in Flutter](https://docs.flutter.dev/development/data-and-backend/state-mgmt/simple)
 - [Material 3 Design System](https://m3.material.io/)
 
