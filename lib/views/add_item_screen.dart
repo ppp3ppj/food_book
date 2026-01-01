@@ -21,6 +21,34 @@ class AddItemScreen extends HookConsumerWidget {
     final priceController = useTextEditingController();
     final reasonController = useTextEditingController();
 
+    // Recent suggestions state
+    final recentSuggestions = useState<List<Map<String, dynamic>>>([]);
+    final isLoadingSuggestions = useState(false);
+
+    // Load recent suggestions on mount
+    useEffect(() {
+      Future<void> loadSuggestions() async {
+        isLoadingSuggestions.value = true;
+        final suggestions = await ref
+            .read(itemProvider.notifier)
+            .getRecentItemSuggestions();
+        recentSuggestions.value = suggestions;
+        isLoadingSuggestions.value = false;
+      }
+
+      loadSuggestions();
+      return null;
+    }, []);
+
+    // Fill form from suggestion
+    void selectSuggestion(Map<String, dynamic> suggestion) {
+      nameController.text = suggestion['name'] as String;
+      priceController.text = (suggestion['price'] as num).toString();
+      if (suggestion['reason'] != null) {
+        reasonController.text = suggestion['reason'] as String;
+      }
+    }
+
     // Save item callback
     Future<void> saveItem() async {
       if (!formKey.currentState!.validate()) {
@@ -78,6 +106,82 @@ class AddItemScreen extends HookConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.all(24.0),
           children: [
+            // Recent Suggestions Section
+            if (recentSuggestions.value.isNotEmpty) ...[
+              Row(
+                children: [
+                  Icon(
+                    Icons.history,
+                    color: Theme.of(context).colorScheme.primary,
+                    size: 24,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'รายการล่าสุด (แตะเพื่อเลือก)',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[800],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 56,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: recentSuggestions.value.length > 8
+                      ? 8
+                      : recentSuggestions.value.length,
+                  itemBuilder: (context, index) {
+                    final suggestion = recentSuggestions.value[index];
+                    final usageCount = suggestion['usage_count'] as int;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: ActionChip(
+                        avatar: CircleAvatar(
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.primary.withOpacity(0.2),
+                          child: Text(
+                            usageCount.toString(),
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                        ),
+                        label: Text(
+                          suggestion['name'] as String,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        onPressed: () => selectSuggestion(suggestion),
+                        backgroundColor: Colors.white,
+                        side: BorderSide(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.primary.withOpacity(0.3),
+                          width: 1.5,
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 24),
+              Divider(color: Colors.grey[300], thickness: 1),
+              const SizedBox(height: 24),
+            ],
+
             // Item Name Field
             Text(
               'ชื่อรายการ',
