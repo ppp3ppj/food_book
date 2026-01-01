@@ -148,6 +148,11 @@ flutter build apk --release
 
 ## Version History
 
+**v1.1.1**
+- Fixed delete item UI refresh bug for non-current dates
+- Delete now correctly reloads the viewed date instead of today
+- Updated package_info_plus to version 9.0.0
+
 **v1.1.0**
 - Added smart item suggestions with usage count
 - Implemented 5-minute caching for suggestions
