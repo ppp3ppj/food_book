@@ -81,6 +81,16 @@ class AppDatabase {
       debugPrint('⚠️ Index creation skipped: $e');
     }
 
+    // Create expression index on LOWER(name) for Thai language grouping
+    try {
+      _database!.execute(
+        'CREATE INDEX IF NOT EXISTS idx_items_name_lower ON items(LOWER(name))',
+      );
+      debugPrint('📊 Expression index created on LOWER(name) for Thai support');
+    } catch (e) {
+      debugPrint('⚠️ Expression index creation skipped: $e');
+    }
+
     debugPrint('📋 Tables created successfully');
   }
 

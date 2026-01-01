@@ -35,6 +35,11 @@ class ItemNotifier extends Notifier<ItemState> {
   final Map<String, List<ItemModel>> _dateCache = {};
   static const int _maxCacheSize = 7;
 
+  // Cache for suggestions (5 minutes TTL)
+  List<Map<String, dynamic>>? _suggestionsCache;
+  DateTime? _suggestionsCacheTime;
+  static const Duration _suggestionsCacheDuration = Duration(minutes: 5);
+
   @override
   ItemState build() {
     // Load items on initialization
@@ -95,6 +100,13 @@ class ItemNotifier extends Notifier<ItemState> {
     debugPrint('🧹 Cleared cache for date: $date');
   }
 
+  /// Clear suggestions cache (call after create/update/delete)
+  void _clearSuggestionsCache() {
+    _suggestionsCache = null;
+    _suggestionsCacheTime = null;
+    debugPrint('🧹 Cleared suggestions cache');
+  }
+
   /// Format DateTime to YYYY-MM-DD string
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
@@ -118,8 +130,9 @@ class ItemNotifier extends Notifier<ItemState> {
 
       debugPrint('✅ Item created: $name - ฿$price for date: $itemDate');
 
-      // Clear cache for this date
+      // Clear caches for this date
       _clearDateCache(itemDate);
+      _clearSuggestionsCache();
       await loadItems(date: itemDate);
       return true;
     } catch (e) {
@@ -151,8 +164,9 @@ class ItemNotifier extends Notifier<ItemState> {
 
       debugPrint('✅ Item updated: ID $id');
 
-      // Clear cache for this date
+      // Clear caches for this date
       _clearDateCache(itemDate);
+      _clearSuggestionsCache();
       await loadItems(date: itemDate);
       return true;
     } catch (e) {
@@ -174,8 +188,9 @@ class ItemNotifier extends Notifier<ItemState> {
 
       debugPrint('✅ Item deleted: ID $id');
 
-      // Clear all cache since we don't know the date
+      // Clear all caches since we don't know the date
       _dateCache.clear();
+      _clearSuggestionsCache();
       await loadItems();
       return true;
     } catch (e) {
@@ -196,6 +211,68 @@ class ItemNotifier extends Notifier<ItemState> {
     return state.items.where((item) {
       return item.name.toLowerCase().contains(lowerQuery);
     }).toList();
+  }
+
+  /// Get recent unique item names for autocomplete
+  /// Returns distinct item names from recent history (last 30 days)
+  /// Cached for 5 minutes to optimize performance
+  Future<List<Map<String, dynamic>>> getRecentItemSuggestions() async {
+    // Check cache first
+    final now = DateTime.now();
+    if (_suggestionsCache != null && _suggestionsCacheTime != null) {
+      final cacheAge = now.difference(_suggestionsCacheTime!);
+      if (cacheAge < _suggestionsCacheDuration) {
+        debugPrint('📦 Using cached suggestions (age: ${cacheAge.inSeconds}s)');
+        return _suggestionsCache!;
+      }
+    }
+
+    try {
+      final thirtyDaysAgo = DateTime.now().subtract(const Duration(days: 30));
+      final dateStr = _formatDate(thirtyDaysAgo);
+
+      // Get distinct items with their most recent price and count
+      // Uses idx_items_name_lower index for fast Thai language grouping
+      final result = _database.query(
+        '''
+        SELECT name, price, reason, COUNT(*) as usage_count, MAX(created_at) as last_used
+        FROM items 
+        WHERE date >= ?
+        GROUP BY LOWER(name)
+        ORDER BY usage_count DESC, last_used DESC
+        LIMIT 20
+        ''',
+        [dateStr],
+      );
+
+      // Update cache
+      _suggestionsCache = result.toList();
+      _suggestionsCacheTime = now;
+      debugPrint(
+        '🔄 Suggestions cache updated (${_suggestionsCache!.length} items)',
+      );
+
+      return _suggestionsCache!;
+    } catch (e) {
+      debugPrint('❌ Error getting suggestions: $e');
+      return [];
+    }
+  }
+
+  /// Get all unique item names (for basic autocomplete)
+  Future<List<String>> getAllItemNames() async {
+    try {
+      final result = _database.query('''
+        SELECT DISTINCT name 
+        FROM items 
+        ORDER BY name
+        ''');
+
+      return result.map((row) => row['name'] as String).toList();
+    } catch (e) {
+      debugPrint('❌ Error getting item names: $e');
+      return [];
+    }
   }
 }
 
