@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../providers/settings_provider.dart';
 
 /// Settings Screen - Configure menu export settings
@@ -21,6 +22,15 @@ class SettingsScreen extends HookConsumerWidget {
 
     // Track if there are unsaved changes
     final hasChanges = useState(false);
+
+    // Load package info for version display
+    final packageInfo = useState<PackageInfo?>(null);
+    useEffect(() {
+      PackageInfo.fromPlatform().then((info) {
+        packageInfo.value = info;
+      });
+      return null;
+    }, []);
 
     // Save settings function
     Future<void> saveSettings() async {
@@ -349,6 +359,36 @@ class SettingsScreen extends HookConsumerWidget {
           ),
 
           const SizedBox(height: 16),
+
+          // App Version Info
+          Center(
+            child: Column(
+              children: [
+                Icon(Icons.info_outline, size: 32, color: Colors.grey[400]),
+                const SizedBox(height: 8),
+                Text(
+                  'FoodBook',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey[700],
+                  ),
+                ),
+                const SizedBox(height: 4),
+                if (packageInfo.value != null)
+                  Text(
+                    'เวอร์ชัน ${packageInfo.value!.version}',
+                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                  )
+                else
+                  Text(
+                    'กำลังโหลด...',
+                    style: TextStyle(fontSize: 14, color: Colors.grey[400]),
+                  ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
         ],
       ),
     );
