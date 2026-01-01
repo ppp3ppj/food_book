@@ -78,7 +78,11 @@ class ItemListScreen extends HookConsumerWidget {
               icon: const Icon(Icons.refresh, size: 28),
               tooltip: 'รีเฟรช',
               iconSize: 28,
-              onPressed: () => ref.read(itemProvider.notifier).loadItems(),
+              onPressed: () {
+                final dateStr =
+                    '${selectedDate.value.year}-${selectedDate.value.month.toString().padLeft(2, '0')}-${selectedDate.value.day.toString().padLeft(2, '0')}';
+                ref.read(itemProvider.notifier).loadItems(date: dateStr);
+              },
             ),
           ),
         ],
