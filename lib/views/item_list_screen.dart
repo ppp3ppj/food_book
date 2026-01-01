@@ -75,13 +75,11 @@ class ItemListScreen extends HookConsumerWidget {
           Padding(
             padding: const EdgeInsets.only(right: 8.0),
             child: IconButton(
-              icon: const Icon(Icons.refresh, size: 28),
-              tooltip: 'รีเฟรช',
+              icon: const Icon(Icons.today, size: 28),
+              tooltip: 'วันนี้',
               iconSize: 28,
               onPressed: () {
-                final dateStr =
-                    '${selectedDate.value.year}-${selectedDate.value.month.toString().padLeft(2, '0')}-${selectedDate.value.day.toString().padLeft(2, '0')}';
-                ref.read(itemProvider.notifier).loadItems(date: dateStr);
+                selectedDate.value = DateTime.now();
               },
             ),
           ),
