@@ -120,7 +120,7 @@ class EditItemScreen extends HookConsumerWidget {
       if (confirmed == true && context.mounted) {
         final success = await ref
             .read(itemProvider.notifier)
-            .deleteItem(item.id!);
+            .deleteItem(item.id!, currentDate: item.date);
 
         if (success && context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

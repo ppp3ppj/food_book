@@ -180,7 +180,7 @@ class ItemNotifier extends Notifier<ItemState> {
   }
 
   /// Delete item
-  Future<bool> deleteItem(int id) async {
+  Future<bool> deleteItem(int id, {String? currentDate}) async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
@@ -191,7 +191,9 @@ class ItemNotifier extends Notifier<ItemState> {
       // Clear all caches since we don't know the date
       _dateCache.clear();
       _clearSuggestionsCache();
-      await loadItems();
+
+      // Reload the current date if provided, otherwise load today
+      await loadItems(date: currentDate);
       return true;
     } catch (e) {
       state = state.copyWith(
