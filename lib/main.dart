@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'config/app_themes.dart';
 import 'data/app_database.dart';
 import 'providers/database_provider.dart';
+import 'providers/theme_provider.dart';
 import 'router/app_router.dart';
 
 void main() async {
@@ -43,16 +45,12 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final goRouter = ref.watch(goRouterProvider);
+    final themeState = ref.watch(themeProvider);
 
     return MaterialApp.router(
       title: 'Food Book POS',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-        // Use Sarabun font for better Thai readability
-        fontFamily: 'Sarabun',
-      ),
+      theme: AppThemes.getTheme(themeState.currentTheme),
       routerConfig: goRouter,
     );
   }

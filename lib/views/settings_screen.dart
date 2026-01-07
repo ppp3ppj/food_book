@@ -3,7 +3,9 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import '../config/app_themes.dart';
 import '../providers/settings_provider.dart';
+import '../providers/theme_provider.dart';
 
 /// Settings Screen - Configure menu export settings
 /// Optimized with manual save button for better performance
@@ -238,6 +240,122 @@ class SettingsScreen extends HookConsumerWidget {
                       hasChanges.value = true;
                     },
                   ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Theme Selector Section
+          Card(
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.palette,
+                        size: 24,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        'ธีมสี',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'เลือกชุดสีที่เหมาะกับคุณ',
+                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  ),
+                  const SizedBox(height: 16),
+                  ...AppThemeMode.values.map((themeMode) {
+                    final themeState = ref.watch(themeProvider);
+                    final isSelected = themeState.currentTheme == themeMode;
+
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12.0),
+                      child: InkWell(
+                        onTap: () {
+                          ref.read(themeProvider.notifier).setTheme(themeMode);
+                        },
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? Theme.of(context).colorScheme.primaryContainer
+                                : Colors.grey[50],
+                            border: Border.all(
+                              color: isSelected
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Colors.grey[300]!,
+                              width: isSelected ? 2 : 1,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                isSelected
+                                    ? Icons.radio_button_checked
+                                    : Icons.radio_button_unchecked,
+                                color: isSelected
+                                    ? Theme.of(context).colorScheme.primary
+                                    : Colors.grey[400],
+                                size: 28,
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      themeMode.nameTh,
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: isSelected
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
+                                        color: isSelected
+                                            ? Theme.of(context).colorScheme.primary
+                                            : Colors.black87,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      themeMode.nameEn,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (isSelected)
+                                Icon(
+                                  Icons.check_circle,
+                                  color: Theme.of(context).colorScheme.primary,
+                                  size: 28,
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
                 ],
               ),
             ),
