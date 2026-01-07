@@ -50,6 +50,8 @@ class MyApp extends ConsumerWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
+        // Use Sarabun font for better Thai readability
+        fontFamily: 'Sarabun',
       ),
       routerConfig: goRouter,
     );
