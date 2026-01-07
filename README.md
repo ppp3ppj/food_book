@@ -24,10 +24,11 @@ FoodBook is a simplified food ordering and tracking system designed specifically
 - Summary statistics for each date
 - Export menu details with customizable header and footer
 
-**Menu Sharing** NEW in v1.2.0
-- Dual-mode sharing: Native share dialog or direct LINE sharing
+**Menu Sharing** NEW in v1.2.x
+- Triple-mode sharing: Native share dialog, direct LINE sharing, or text preview
 - Share to any app (LINE, WhatsApp, messaging, email, etc.)
 - One-tap direct sharing to LINE app
+- Preview formatted text before sharing
 - Preserves Thai text formatting and menu structure
 - Smart error handling for missing apps
 
@@ -115,6 +116,7 @@ lib/
 3. **Choose your sharing method:**
    - **แชร์ไปยังแอปอื่น** (Share to other apps): Opens native share dialog where you can choose any installed app
    - **แชร์ไปยัง LINE** (Share to LINE): Directly opens LINE app with pre-filled menu text
+   - **ดูตัวอย่างข้อความ** (View Text Preview): Preview the formatted text before deciding how to share
 
 **Shared Format:**
 ```
@@ -196,7 +198,18 @@ The app includes LINE app query configuration in `AndroidManifest.xml`:
 
 ## Version History
 
-**v1.2.0** Latest
+**v1.2.1** Latest
+- **NEW: Text preview option in sharing menu**
+  - Added "ดูตัวอย่างข้อความ" (View Text Preview) as third sharing option
+  - Preview formatted menu text before sharing
+  - Selectable text in preview dialog for partial copying
+  - Orange visibility icon for easy identification
+- **Enhanced User Experience**
+  - Users can verify menu content before deciding how to share
+  - Senior-friendly dialog with large, readable text
+  - Consistent Thai language and visual design
+
+**v1.2.0**
 - **NEW: Dual-mode menu sharing functionality**
   - Native share dialog: Share to any app (LINE, WhatsApp, messaging, etc.)
   - Direct LINE sharing: One-tap sharing directly to LINE app

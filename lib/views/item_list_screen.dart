@@ -617,6 +617,17 @@ class ItemListScreen extends HookConsumerWidget {
                 _shareViaLine(context, formattedText);
               },
             ),
+            ListTile(
+              leading: const Icon(Icons.visibility, size: 28, color: Colors.orange),
+              title: const Text(
+                'ดูตัวอย่างข้อความ',
+                style: TextStyle(fontSize: 18),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                _showTextPreview(context, formattedText);
+              },
+            ),
             const SizedBox(height: 16),
           ],
         ),
@@ -693,6 +704,37 @@ class ItemListScreen extends HookConsumerWidget {
         );
       }
     }
+  }
+
+  /// Show text preview dialog
+  void _showTextPreview(
+    BuildContext context,
+    String formattedText,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(
+          'ตัวอย่างข้อความ',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            child: SelectableText(
+              formattedText,
+              style: const TextStyle(fontSize: 16, height: 1.5),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('ปิด', style: TextStyle(fontSize: 16)),
+          ),
+        ],
+      ),
+    );
   }
 
   /// Generate formatted menu text
