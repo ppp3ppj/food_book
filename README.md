@@ -188,24 +188,57 @@ The app includes LINE app query configuration in `AndroidManifest.xml`:
 
 ## Color Palette
 
+**Warm & Calming Theme - Optimized for Seniors**
+
 **Primary Colors**
-- Primary: #2E7D8C (Soft Teal)
-- Secondary: #6B9B7D (Sage Green)
-- Tertiary: #D97D54 (Warm Terracotta)
+- Primary: #2E7D8C (Soft Teal) - Calming, professional, reduces eye strain
+- Primary Container: #B8E3E8 (Light Teal) - Gentle backgrounds
+- Secondary: #6B9B7D (Sage Green) - Natural, easy on eyes
+- Secondary Container: #D4E8DC (Light Sage) - Soft accents
+- Tertiary: #D97D54 (Warm Terracotta) - Friendly, inviting
+- Tertiary Container: #FADFД0 (Light Terracotta) - Subtle highlights
 
-**Surfaces**
-- Surface: #F8F9FA (Soft Off-white)
-- Background: #FAFBFC (Warm Background)
-- Text: #2C3E50 (High Contrast Blue-grey)
+**Surfaces & Backgrounds**
+- Surface: #FAFBFC (Warm Off-White) - Reduces blue light, comfortable for long viewing
+- Surface Container: #F0F4F5 (Light Gray-Blue) - Subtle depth
+- Card Background: #FFFFFF (Pure White) - Clean, clear content areas
 
-**Accessibility**
-- WCAG AAA compliant contrast ratios
-- High visibility error states
-- Clear visual hierarchy
+**Text & Contrast**
+- Primary Text: #2C3E50 (Dark Blue-Gray) - WCAG AAA compliant
+- Secondary Text: #5A6A7A (Medium Gray) - Subtle information
+- Error: #D84848 (Soft Red) - Clear but not harsh
+
+**Borders & Dividers**
+- Outline: #D0D8E0 (Soft Gray) - Gentle separation without harshness
+
+**Design Benefits for Seniors**
+- Warm tones reduce digital eye fatigue
+- High contrast (WCAG AAA) for readability
+- Soft colors prevent glare and strain
+- Natural color harmony creates peaceful experience
+- Clear visual hierarchy guides attention
 
 ## Version History
 
-**v1.3.0** Latest
+**v1.4.0** Latest
+- **NEW: Warm & Calming Color Theme**
+  - Professional senior-friendly color palette
+  - Soft Teal (#2E7D8C) primary - calming and reduces eye strain
+  - Sage Green (#6B9B7D) secondary - natural, easy on eyes
+  - Warm Terracotta (#D97D54) accents - friendly and inviting
+  - Warm off-white surfaces - reduces blue light exposure
+- **Enhanced UI Components**
+  - Rounded cards (16px radius) for modern, soft appearance
+  - Consistent button styling with comfortable padding
+  - Floating action button with softer shadows
+  - Clean app bar with no harsh elevation
+- **Accessibility Improvements**
+  - WCAG AAA contrast ratios throughout
+  - Reduced glare with warm color temperatures
+  - Clear visual hierarchy for easy navigation
+  - Comfortable for extended viewing sessions
+
+**v1.3.0**
 - **NEW: Custom Sarabun font for enhanced readability**
   - Integrated Sarabun font family (Regular, Medium, SemiBold, Bold)
   - Optimized for Thai language with excellent character spacing
