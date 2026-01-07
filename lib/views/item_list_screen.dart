@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/item_model.dart';
 import '../providers/item_provider.dart';
 import '../providers/settings_provider.dart';
@@ -59,8 +61,8 @@ class ItemListScreen extends HookConsumerWidget {
               icon: const Icon(Icons.share, size: 28),
               tooltip: 'แชร์เมนู',
               iconSize: 28,
-              onPressed: () =>
-                  _shareMenu(context, ref, selectedDate.value, itemState.items),
+              onPressed: () => _showShareOptions(
+                  context, ref, selectedDate.value, itemState.items),
             ),
           ),
           Padding(
@@ -543,6 +545,153 @@ class ItemListScreen extends HookConsumerWidget {
           ),
         ),
       );
+    }
+  }
+
+  /// Show share options bottom sheet
+  Future<void> _showShareOptions(
+    BuildContext context,
+    WidgetRef ref,
+    DateTime selectedDate,
+    List<ItemModel> items,
+  ) async {
+    if (items.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'ไม่มีรายการอาหารให้แชร์',
+            style: TextStyle(fontSize: 16),
+          ),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    final settings = ref.read(settingsProvider);
+    final formattedText = _generateMenuText(
+      settings.menuHeaderText,
+      settings.menuFooterNote,
+      selectedDate,
+      items,
+    );
+
+    if (!context.mounted) return;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Text(
+                'แชร์เมนู',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.share, size: 28, color: Colors.blue),
+              title: const Text(
+                'แชร์ไปยังแอปอื่น',
+                style: TextStyle(fontSize: 18),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                _shareViaDialog(context, formattedText);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.message, size: 28, color: Colors.green),
+              title: const Text(
+                'แชร์ไปยัง LINE',
+                style: TextStyle(fontSize: 18),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                _shareViaLine(context, formattedText);
+              },
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Share via native share dialog
+  Future<void> _shareViaDialog(
+    BuildContext context,
+    String formattedText,
+  ) async {
+    try {
+      await SharePlus.instance.share(
+        ShareParams(
+          text: formattedText,
+          subject: 'เมนูอาหาร',
+        ),
+      );
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'เกิดข้อผิดพลาดในการแชร์: ${e.toString()}',
+              style: const TextStyle(fontSize: 16),
+            ),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    }
+  }
+
+  /// Share directly to LINE app
+  Future<void> _shareViaLine(
+    BuildContext context,
+    String formattedText,
+  ) async {
+    try {
+      // Encode text for URL
+      final encodedText = Uri.encodeComponent(formattedText);
+
+      // Construct LINE URL scheme
+      final lineUrl = 'line://msg/text/$encodedText';
+      final uri = Uri.parse(lineUrl);
+
+      // Check if LINE can be launched
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'ไม่ได้ติดตั้งแอป LINE',
+                style: TextStyle(fontSize: 16),
+              ),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'เกิดข้อผิดพลาดในการแชร์: ${e.toString()}',
+              style: const TextStyle(fontSize: 16),
+            ),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
     }
   }
 
