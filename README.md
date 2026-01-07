@@ -220,7 +220,23 @@ The app includes LINE app query configuration in `AndroidManifest.xml`:
 
 ## Version History
 
-**v1.4.0** Latest
+**v1.5.0** Latest
+- **NEW: Multi-Theme Support with Settings**
+  - 4 professional theme options for different preferences:
+    - **Warm & Calming** (Default) - Soft Teal, Sage Green, Terracotta
+    - **Bright & Cheerful** - Coral, Soft Orange, Sky Blue
+    - **Classic & Professional** - Navy Blue, Gold, Indigo
+    - **Earthy & Natural** - Terracotta, Olive Green, Sand Beige
+  - Theme selector in Settings screen with live preview
+  - Persists theme selection across app restarts
+  - Large touch-friendly radio buttons for easy selection
+  - Thai and English labels for each theme
+- **Technical Improvements**
+  - New theme provider with Riverpod state management
+  - Centralized theme configuration system
+  - Automatic theme persistence with SharedPreferences
+
+**v1.4.0**
 - **NEW: Warm & Calming Color Theme**
   - Professional senior-friendly color palette
   - Soft Teal (#2E7D8C) primary - calming and reduces eye strain
