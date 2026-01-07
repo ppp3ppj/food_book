@@ -24,6 +24,13 @@ FoodBook is a simplified food ordering and tracking system designed specifically
 - Summary statistics for each date
 - Export menu details with customizable header and footer
 
+**Menu Sharing** NEW in v1.2.0
+- Dual-mode sharing: Native share dialog or direct LINE sharing
+- Share to any app (LINE, WhatsApp, messaging, email, etc.)
+- One-tap direct sharing to LINE app
+- Preserves Thai text formatting and menu structure
+- Smart error handling for missing apps
+
 **Senior-Friendly Design**
 - Large text sizes (18-22px) for better readability
 - High contrast color scheme (soft teal, sage green, warm terracotta)
@@ -54,6 +61,8 @@ FoodBook is a simplified food ordering and tracking system designed specifically
 - package_info_plus: App version display
 - shared_preferences: Settings persistence
 - path_provider: Database path management
+- share_plus: Native share dialog functionality
+- url_launcher: Deep linking and external app launching
 
 ## Architecture
 
@@ -97,12 +106,40 @@ lib/
 - ListView.builder for efficient list rendering
 - Skeleton loaders for loading states
 
+## Using the Sharing Feature
+
+**How to Share Your Menu:**
+
+1. **Open the main screen** (Item List)
+2. **Tap the share icon** in the top-right corner
+3. **Choose your sharing method:**
+   - **แชร์ไปยังแอปอื่น** (Share to other apps): Opens native share dialog where you can choose any installed app
+   - **แชร์ไปยัง LINE** (Share to LINE): Directly opens LINE app with pre-filled menu text
+
+**Shared Format:**
+```
+[Your custom header]
+วันที่ 7 ม.ค. 2569
+
+1. ข้าวผัด - ฿45.00
+   หมายเหตุ: ไม่ใส่ผัก
+
+2. กะเพราหมู - ฿50.00
+
+[Your custom footer]
+```
+
+**Requirements:**
+- For LINE sharing: LINE app must be installed on your device
+- Internet connection not required (shares locally stored data)
+
 ## Development Setup
 
 **Prerequisites**
 - Flutter SDK 3.10.4 or higher
 - Dart SDK
 - Android Studio or VS Code with Flutter extensions
+- For LINE sharing feature: Android 11+ requires AndroidManifest.xml configuration
 
 **Installation**
 1. Clone the repository
@@ -112,6 +149,17 @@ lib/
 **Build Release APK**
 ```bash
 flutter build apk --release
+```
+
+**Android Configuration for Sharing:**
+The app includes LINE app query configuration in `AndroidManifest.xml`:
+```xml
+<queries>
+    <intent>
+        <action android:name="android.intent.action.VIEW"/>
+        <data android:scheme="line"/>
+    </intent>
+</queries>
 ```
 
 ## Database Schema
@@ -147,6 +195,21 @@ flutter build apk --release
 - Clear visual hierarchy
 
 ## Version History
+
+**v1.2.0** Latest
+- **NEW: Dual-mode menu sharing functionality**
+  - Native share dialog: Share to any app (LINE, WhatsApp, messaging, etc.)
+  - Direct LINE sharing: One-tap sharing directly to LINE app
+  - Bottom sheet UI with large touch targets for senior-friendly access
+- **Package Updates**
+  - Updated share_plus to 12.0.1 (migrated to new SharePlus API)
+  - Updated url_launcher to 6.3.2 for LINE deep linking
+- **Android Configuration**
+  - Added LINE app query intent for Android 11+ compatibility
+- **Enhanced User Experience**
+  - Thai language support throughout sharing flow
+  - Smart error handling when LINE app is not installed
+  - Preserves menu text formatting in all sharing methods
 
 **v1.1.1**
 - Fixed delete item UI refresh bug for non-current dates
