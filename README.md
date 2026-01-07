@@ -33,10 +33,12 @@ FoodBook is a simplified food ordering and tracking system designed specifically
 - Smart error handling for missing apps
 
 **Senior-Friendly Design**
+- Sarabun font family optimized for Thai language readability
 - Large text sizes (18-22px) for better readability
 - High contrast color scheme (soft teal, sage green, warm terracotta)
 - Generous spacing and large touch targets (56-60px)
 - Thai language support throughout
+- Offline font files for consistent rendering
 
 ## Technical Stack
 
@@ -64,6 +66,11 @@ FoodBook is a simplified food ordering and tracking system designed specifically
 - path_provider: Database path management
 - share_plus: Native share dialog functionality
 - url_launcher: Deep linking and external app launching
+
+**Custom Fonts**
+- Sarabun (Regular, Medium, SemiBold, Bold): Google font optimized for Thai language
+- Offline TTF files for consistent cross-device rendering
+- Open Font License, free for commercial use
 
 ## Architecture
 
@@ -198,7 +205,18 @@ The app includes LINE app query configuration in `AndroidManifest.xml`:
 
 ## Version History
 
-**v1.2.1** Latest
+**v1.3.0** Latest
+- **NEW: Custom Sarabun font for enhanced readability**
+  - Integrated Sarabun font family (Regular, Medium, SemiBold, Bold)
+  - Optimized for Thai language with excellent character spacing
+  - Offline TTF files for consistent rendering across all devices
+  - Applied to all text elements app-wide
+- **Typography Improvements**
+  - Better readability for seniors with clear, modern typeface
+  - Improved contrast and spacing for Thai characters
+  - Consistent font weights for visual hierarchy
+
+**v1.2.1**
 - **NEW: Text preview option in sharing menu**
   - Added "ดูตัวอย่างข้อความ" (View Text Preview) as third sharing option
   - Preview formatted menu text before sharing
